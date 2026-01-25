@@ -22,13 +22,13 @@ const QuizScreen = ({
       {/* Stats Header */}
       <div className="absolute top-0 right-4 md:right-8 flex gap-2 md:gap-4">
         {coins ? (<div className=" px-2 md:px-4 py-2 flex items-center gap-2">
-          <img src="/assets/1768855134283-new.png" alt="coin" className="w-12 h-12 md:w-20 md:h-20" />
+          <img src={`${import.meta.env.BASE_URL}assets/1768855134283-new.png`} alt="coin" className="w-12 h-12 md:w-20 md:h-20" />
           <span className="text-xl md:text-2xl font-bold">{coins}</span>
         </div>) : null}
 
         {diamonds ? (
           <div className=" px-2 md:px-4 py-2 flex items-center gap-2">
-            <img src="/assets/image7-new.png" alt="diamond" className="w-14 h-14 md:w-22 md:h-22" />
+            <img src={`${import.meta.env.BASE_URL}assets/image7-new.png`} alt="diamond" className="w-14 h-14 md:w-22 md:h-22" />
             <span className="text-xl md:text-2xl font-bold">{diamonds}</span>
           </div>) : null}
       </div>
@@ -52,7 +52,7 @@ const QuizScreen = ({
               ${isAnswered && selectedOption === idx && idx !== shuffledAnswerIndex ? 'bg-red-400! border-red-600! wrong' : ''}
             `}
           >
-            <span className="inline-block w-6 h-6 md:w-8 md:h-8 md:lh-8 lh-6 rounded-full bg-white/50 text-center text-sm md:text-base">{idx + 1}</span>
+            <span className="flex min-w-6 min-h-6 items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-white/50 text-sm md:text-base">{idx + 1}</span>
             <span>{option}</span>
           </button>
         ))}

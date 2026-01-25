@@ -29,16 +29,16 @@ Object.values(audioFiles).forEach(audio => {
 
 // Preload Images
 const IMAGE_ASSETS = [
-  '/assets/bg_transparent.png',       // Background
-  '/assets/1768855134283-new.png', // Coin Icon
-  '/assets/image7-new.png',        // Diamond
-  '/assets/image11-new.png',       // Coin Large
-  '/assets/win-transparent-new.png',        // Trophy
+  'bg_transparent.png',
+  '1768855134283-new.png',
+  'image7-new.png',
+  'image11-new.png',
+  'win-transparent-new.png',
 ];
 
 IMAGE_ASSETS.forEach(src => {
   const img = new Image();
-  img.src = src;
+  img.src = `${import.meta.env.BASE_URL}assets/${src}`;
 });
 
 function usePrevious(value) {
@@ -251,7 +251,7 @@ function App() {
   return (
     <div
       className={`game-container ${screen !== SCREENS.START ? 'bg-linear-to-b from-[#FFF9E1] to-[#F3E2A9]' : ''}`}
-      style={screen === SCREENS.START ? { backgroundImage: "url('/assets/bg_transparent.png')" } : {}}
+      style={screen === SCREENS.START ? { backgroundImage: `url('${import.meta.env.BASE_URL}assets/bg_transparent.png')` } : {}}
     >
 
       <div style={{ display: screen === SCREENS.START ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
@@ -287,7 +287,7 @@ function App() {
 
       {/* Force Preload Images */}
       <div className="hidden">
-        {IMAGE_ASSETS.map(src => <img key={src} src={src} alt="preload" />)}
+        {IMAGE_ASSETS.map(src => <img key={src} src={`${import.meta.env.BASE_URL}assets/${src}`} alt="preload" />)}
       </div>
     </div>
   );
