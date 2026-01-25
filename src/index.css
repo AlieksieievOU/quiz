@@ -29,6 +29,7 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  min-width: 375px;
 }
 
 .glass-panel {
@@ -51,6 +52,9 @@ body {
   border-radius: 1.5rem;
   box-shadow: 0 6px 0 #ca8a04;
   transition: all 0.1s;
+  display: flex;
+  flex-direction: row;
+  gap: 16px
 }
 
 .yellow-button:active {
