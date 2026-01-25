@@ -1,6 +1,53 @@
-import React, { useEffect, Activity, useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
+import { motion } from 'framer-motion';
 import questions from './data/questions.json';
 import './App.css';
+
+// Sounds
+import uiNotificationSound from './assets/sounds/ui_notification.wav';
+import uiRejectSound from './assets/sounds/ui_reject.wav';
+import uiCoinSound from './assets/sounds/ui_coin.wav';
+import uiDiamondSound from './assets/sounds/ui_diamond.wav';
+import uiLevelSplashSound from './assets/sounds/ui_notification_2.wav';
+import uiWinSound from './assets/sounds/ui_win.mp3';
+
+// Preload sounds
+const audioFiles = {
+  notification: new Audio(uiNotificationSound),
+  reject: new Audio(uiRejectSound),
+  coin: new Audio(uiCoinSound),
+  diamond: new Audio(uiDiamondSound),
+  levelSplash: new Audio(uiLevelSplashSound),
+  win: new Audio(uiWinSound),
+};
+
+// Set volumes or other properties
+Object.values(audioFiles).forEach(audio => {
+  audio.preload = 'auto';
+  audio.volume = 0.5;
+});
+
+// Preload Images
+const IMAGE_ASSETS = [
+  '/assets/bg_transparent.png',       // Background
+  '/assets/1768855134283-new.png', // Coin Icon
+  '/assets/image7-new.png',        // Diamond
+  '/assets/image11-new.png',       // Coin Large
+  '/assets/win-transparent-new.png',        // Trophy
+];
+
+IMAGE_ASSETS.forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
+
+function usePrevious(value) {
+  const ref = React.useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
 
 // Import Screen Components
 import StartScreen from './components/StartScreen';
@@ -63,7 +110,7 @@ function reducer(state, action) {
 
     case 'CHECK_ANSWER': {
       if (state.selectedOption === null) return state;
-      
+
       const correct = state.shuffledAnswerIndex === state.selectedOption;
       let { coins, diamonds, rewardType } = state;
 
@@ -90,7 +137,7 @@ function reducer(state, action) {
 
     case 'NEXT_QUESTION': {
       const { fromReward = false } = action.payload || {};
-      
+
       // If we're coming from the quiz and were correct, show the reward splash
       if (!fromReward && state.isCorrect) {
         return { ...state, screen: SCREENS.REWARD };
@@ -139,9 +186,9 @@ function reducer(state, action) {
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { 
-    screen, questionIndex, coins, diamonds, 
-    selectedOption, isAnswered, rewardType,
+  const {
+    screen, questionIndex, coins, diamonds,
+    selectedOption, isAnswered, isCorrect, rewardType,
     shuffledOptions, shuffledAnswerIndex
   } = state;
 
@@ -167,22 +214,56 @@ function App() {
     }
   }, [screen, rewardType]);
 
+  // Handle Reward Sounds
+  useEffect(() => {
+    if (screen === SCREENS.REWARD) {
+      if (rewardType === 'coin') {
+        audioFiles.coin.currentTime = 0;
+        audioFiles.coin.play().catch(e => console.error(e));
+      } else if (rewardType === 'diamond') {
+        audioFiles.diamond.currentTime = 0;
+        audioFiles.diamond.play().catch(e => console.error(e));
+      }
+    } else if (screen === SCREENS.WIN) {
+      audioFiles.win.currentTime = 0;
+      audioFiles.win.play().catch(e => console.error(e));
+    } else if (screen === SCREENS.GAME_OVER) {
+      audioFiles.reject.currentTime = 0;
+      audioFiles.reject.play().catch(e => console.error(e));
+    } else if (screen === SCREENS.LEVEL_SPLASH) {
+      audioFiles.levelSplash.currentTime = 0;
+      audioFiles.levelSplash.play().catch(e => console.error(e));
+    }
+  }, [screen, rewardType]);
+
+  // Handle Answer Sounds (Notification/Reject)
+  useEffect(() => {
+    if (isAnswered) {
+      // Delay slightly to not conflict with coin sound
+      setTimeout(() => {
+        const sound = isCorrect ? audioFiles.notification : audioFiles.reject;
+        sound.currentTime = 0;
+        sound.play().catch(e => console.error("Audio play failed:", e));
+      }, 100);
+    }
+  }, [isAnswered, isCorrect]);
+
   return (
-    <div 
-      className={`game-container ${screen !== SCREENS.START ? 'bg-linear-to-b from-[#FFF9E1] to-[#F3E2A9]' : ''}`} 
-      style={screen === SCREENS.START ? { backgroundImage: "url('/assets/image10.png')" } : {}}
+    <div
+      className={`game-container ${screen !== SCREENS.START ? 'bg-linear-to-b from-[#FFF9E1] to-[#F3E2A9]' : ''}`}
+      style={screen === SCREENS.START ? { backgroundImage: "url('/assets/bg_transparent.png')" } : {}}
     >
-      
-      <Activity mode={screen === SCREENS.START ? "visible" : "hidden"}>
+
+      <div style={{ display: screen === SCREENS.START ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
         <StartScreen onStart={() => dispatch({ type: 'START_LEVEL' })} />
-      </Activity>
+      </div>
 
-      <Activity mode={screen === SCREENS.LEVEL_SPLASH ? "visible" : "hidden"}>
+      <div style={{ display: screen === SCREENS.LEVEL_SPLASH ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
         <LevelSplashScreen />
-      </Activity>
+      </div>
 
-      <Activity mode={screen === SCREENS.QUIZ ? "visible" : "hidden"}>
-        <QuizScreen 
+      <div style={{ display: screen === SCREENS.QUIZ ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+        <QuizScreen
           question={questions[questionIndex]}
           shuffledOptions={shuffledOptions}
           shuffledAnswerIndex={shuffledAnswerIndex}
@@ -194,15 +275,20 @@ function App() {
           checkAnswer={() => dispatch({ type: 'CHECK_ANSWER' })}
           nextQuestion={() => dispatch({ type: 'NEXT_QUESTION' })}
         />
-      </Activity>
+      </div>
 
-      <Activity mode={(screen === SCREENS.REWARD || screen === SCREENS.WIN) ? "visible" : "hidden"}>
-        <RewardScreen rewardType={rewardType} />
-      </Activity>
+      <div style={{ display: (screen === SCREENS.REWARD || screen === SCREENS.WIN) ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+        <RewardScreen rewardType={rewardType} onRestart={() => dispatch({ type: 'SET_SCREEN', payload: SCREENS.START })} />
+      </div>
 
-      <Activity mode={screen === SCREENS.GAME_OVER ? "visible" : "hidden"}>
+      <div style={{ display: screen === SCREENS.GAME_OVER ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
         <GameOverScreen onRestart={() => dispatch({ type: 'SET_SCREEN', payload: SCREENS.START })} />
-      </Activity>
+      </div>
+
+      {/* Force Preload Images */}
+      <div className="hidden">
+        {IMAGE_ASSETS.map(src => <img key={src} src={src} alt="preload" />)}
+      </div>
     </div>
   );
 }
