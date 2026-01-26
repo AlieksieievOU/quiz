@@ -1,6 +1,11 @@
 import React, { useEffect, useReducer } from 'react';
 import { motion } from 'framer-motion';
-import questions from './data/questions.json';
+import questions1 from './data/questions.json';
+import questions2 from './data/questions2.json';
+
+const allQuestions = [...questions1, ...questions2];
+
+
 import './App.css';
 
 // Sounds
@@ -28,18 +33,26 @@ Object.values(audioFiles).forEach(audio => {
 });
 
 // Preload Images
-const IMAGE_ASSETS = [
+const UI_ASSETS = [
   'bg_transparent.png',
   '1768855134283-new.png',
   'image7-new.png',
   'image11-new.png',
-  'win-transparent-new.png',
+  'win_transparent-new.png',
+  'errors.png',
 ];
 
-IMAGE_ASSETS.forEach(src => {
+const QUESTION_IMAGES = allQuestions
+  .filter(q => q.image)
+  .map(q => `quiz-images/${q.id}.png`);
+
+const ALL_ASSETS = [...UI_ASSETS, ...QUESTION_IMAGES];
+
+ALL_ASSETS.forEach(src => {
   const img = new Image();
   img.src = `${import.meta.env.BASE_URL}assets/${src}`;
 });
+
 
 function usePrevious(value) {
   const ref = React.useRef();
@@ -89,20 +102,27 @@ const initialState = {
   isMuted: false,
   errors: 0,
   currentFont: 'Comfortaa',
+  sessionQuestions: [],
 };
+
 
 function reducer(state, action) {
   switch (action.type) {
     case 'START_LEVEL': {
-      const firstQuestion = questions[0];
+      const sessionQuestions = shuffleArray(allQuestions).slice(0, 10);
+
+      const firstQuestion = sessionQuestions[0];
       const options = shuffleArray(firstQuestion.options);
       return {
         ...initialState,
         screen: SCREENS.LEVEL_SPLASH,
+        sessionQuestions,
         shuffledOptions: options,
         shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
       };
     }
+
+
 
     case 'SET_SCREEN':
       return { ...state, screen: action.payload };
@@ -179,13 +199,15 @@ function reducer(state, action) {
       }
 
       // Otherwise, proceed to next question
-      const nextIndex = (state.questionIndex + 1) % questions.length;
-      const options = shuffleArray(questions[nextIndex].options);
+      const nextIndex = state.questionIndex + 1;
+      const currentQuestion = state.sessionQuestions[nextIndex];
+      const options = shuffleArray(currentQuestion.options);
+
       return {
         ...state,
         questionIndex: nextIndex,
         shuffledOptions: options,
-        shuffledAnswerIndex: options.indexOf(questions[nextIndex].options[questions[nextIndex].answer]),
+        shuffledAnswerIndex: options.indexOf(currentQuestion.options[currentQuestion.answer]),
         totalQuestionsAnswered: answeredCount,
         selectedOption: null,
         isAnswered: false,
@@ -193,6 +215,7 @@ function reducer(state, action) {
         rewardType: null,
         screen: SCREENS.QUIZ,
       };
+
     }
 
     case 'SET_FONT':
@@ -338,20 +361,23 @@ function App() {
         <LevelSplashScreen />
       </div>
 
-      <div style={{ display: screen === SCREENS.QUIZ ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center' }}>
-        <QuizScreen
-          question={questions[questionIndex]}
-          shuffledOptions={shuffledOptions}
-          shuffledAnswerIndex={shuffledAnswerIndex}
-          selectedOption={selectedOption}
-          isAnswered={isAnswered}
-          isMuted={isMuted}
-          toggleMute={toggleMute}
-          handleOptionSelect={(idx) => dispatch({ type: 'SELECT_OPTION', payload: idx })}
-          checkAnswer={() => dispatch({ type: 'CHECK_ANSWER' })}
-          nextQuestion={() => dispatch({ type: 'NEXT_QUESTION' })}
-        />
-      </div>
+      {screen === SCREENS.QUIZ && state.sessionQuestions[questionIndex] && (
+        <div className="w-full h-full flex justify-center">
+          <QuizScreen
+            question={state.sessionQuestions[questionIndex]}
+            shuffledOptions={shuffledOptions}
+            shuffledAnswerIndex={shuffledAnswerIndex}
+            selectedOption={selectedOption}
+            isAnswered={isAnswered}
+            isMuted={isMuted}
+            toggleMute={toggleMute}
+            handleOptionSelect={(idx) => dispatch({ type: 'SELECT_OPTION', payload: idx })}
+            checkAnswer={() => dispatch({ type: 'CHECK_ANSWER' })}
+            nextQuestion={() => dispatch({ type: 'NEXT_QUESTION' })}
+          />
+        </div>
+      )}
+
 
       <div style={{ display: (screen === SCREENS.REWARD || screen === SCREENS.WIN) ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
         <RewardScreen rewardType={rewardType} onRestart={() => dispatch({ type: 'SET_SCREEN', payload: SCREENS.START })} />
@@ -363,8 +389,9 @@ function App() {
 
       {/* Force Preload Images */}
       <div className="hidden">
-        {IMAGE_ASSETS.map(src => <img key={src} src={`${import.meta.env.BASE_URL}assets/${src}`} alt="preload" />)}
+        {ALL_ASSETS.map(src => <img key={src} src={`${import.meta.env.BASE_URL}assets/${src}`} alt="preload" />)}
       </div>
+
     </div>
   );
 }

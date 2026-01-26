@@ -13,7 +13,10 @@ const QuizScreen = ({
   checkAnswer,
   nextQuestion
 }) => {
+  if (!question) return null;
+
   return (
+
     <motion.div
       key="quiz"
       initial={{ x: 300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }}
