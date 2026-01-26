@@ -66,19 +66,16 @@ const QuizScreen = ({
 
         {!isAnswered ? (
           <button
-
             onClick={checkAnswer}
             disabled={selectedOption === null}
-            className={`px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-xl md:text-2xl font-bold text-white transition-all
-              ${selectedOption !== null ? 'bg-blue-500 shadow-[0_4px_0_#2563eb] md:shadow-[0_6px_0_#2563eb] hover:scale-105 active:scale-95' : 'bg-slate-400 cursor-not-allowed opacity-50'}
-            `}
+            className="blue-button px-8 py-4 text-2xl font-bold"
           >
             ПЕРЕВІРИТИ
           </button>
         ) : (
           <button
             onClick={() => nextQuestion(false)}
-            className={`next-arrow px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-xl md:text-2xl font-bold text-white transition-all  bg-blue-500 shadow-[0_4px_0_#2563eb] md:shadow-[0_6px_0_#2563eb] hover:scale-105 active:scale-95`}
+            className="blue-button px-8 py-4 text-2xl font-bold next-arrow"
           >
             ДАЛІ
           </button>
@@ -90,7 +87,7 @@ const QuizScreen = ({
           href={question.wiki || "#"}
           target="_blank"
           rel="noopener noreferrer"
-          className="yellow-button px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-xl md:text-2xl font-bold text-black flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+          className="yellow-button px-8 py-4 text-2xl font-bold text-black"
         >
           Повторити Теорію
         </a>
