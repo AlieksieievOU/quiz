@@ -14,7 +14,7 @@ const GameOverScreen = ({ onRestart }) => {
        <p className="text-black mb-12 text-xl">Наберіть 3 діаманти за 60 запитань, щоб виграти!</p>
        <button 
         onClick={onRestart}
-        className="px-12 py-6 yellow-button text-3xl font-bold text-slate-900 text-center mx-auto"
+        className="px-12 py-6 blue-button text-3xl font-bold text-white cursor-pointer text-center mx-auto animate-bounce"
       >
         НА ГОЛОВНУ
       </button>
