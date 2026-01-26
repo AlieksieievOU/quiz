@@ -26,7 +26,7 @@ const RewardScreen = ({ rewardType, onRestart }) => {
           <img src={`${import.meta.env.BASE_URL}assets/win_transparent-new.png`} alt="Trophy" className="w-full h-full md:w-100 drop-shadow-2xl mb-8" />
           <button
             onClick={onRestart}
-            className="yellow-button px-12 py-6 text-3xl font-bold text-slate-900"
+            className="yellow-button px-12 py-6 text-3xl font-bold text-slate-900 animate-bounce"
           >
             НА ГОЛОВНУ
           </button>
