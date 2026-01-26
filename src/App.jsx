@@ -330,7 +330,7 @@ function App() {
 
 
           {errors > 0 ? (
-          <div className="px-2 md:px-4 py-2 flex items-center gap-2 text-red-600">
+          <div className="px-2 md:px-4 py-2 flex items-center gap-2">
             
            <img src={`${import.meta.env.BASE_URL}assets/errors.png`} alt="errors" className="w-12 md:w-20" />
             <span className="text-xl md:text-3xl font-bold">{errors}</span>
