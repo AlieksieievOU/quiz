@@ -1,19 +1,14 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Bubblegum Sans';
-  src: url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap');
-}
-
 :root {
-  --font-bubblegum: 'Bubblegum Sans', cursive;
+  --font-serif: 'Times New Roman', Times, serif;
 }
 
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: var(--font-bubblegum), system-ui, sans-serif;
+  font-family: var(--font-serif);
   background-color: #fef9c3;
 }
 

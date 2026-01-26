@@ -17,7 +17,7 @@ const RewardScreen = ({ rewardType, onRestart }) => {
       {rewardType === 'diamond' && (
         <div className="coin-anim flex flex-col items-center">
           <img src={`${import.meta.env.BASE_URL}assets/image7-new.png`} alt="Diamond" className="w-full h-full md:w-100 md:h-100  drop-shadow-2xl mb-8" />
-          <h2 className="text-5xl font-bold text-slate-800 drop-shadow-md px-8">ТАК ТРИМАТИ! ДІАМАНТ!</h2>
+          <h2 className="text-5xl font-bold text-slate-800 drop-shadow-md px-8 text-center">ТАК ТРИМАТИ! ДІАМАНТ!</h2>
         </div>
       )}
       {rewardType === 'trophy' && (

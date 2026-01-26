@@ -86,6 +86,8 @@ const initialState = {
   totalQuestionsAnswered: 0,
   shuffledOptions: [],
   shuffledAnswerIndex: null,
+  isMuted: false,
+  errors: 0,
 };
 
 function reducer(state, action) {
@@ -112,14 +114,13 @@ function reducer(state, action) {
       if (state.selectedOption === null) return state;
 
       const correct = state.shuffledAnswerIndex === state.selectedOption;
-      let { coins, diamonds, rewardType } = state;
+      let rewardType = null;
 
       if (correct) {
-        coins += 1;
-        // Check for Diamond Reward
-        if (coins % 3 === 0 && coins !== 0) {
+        // Calculate potential reward, but don't update coins/diamonds yet
+        const nextCoins = state.coins + 1;
+        if (nextCoins % 3 === 0 && nextCoins !== 0) {
           rewardType = 'diamond';
-          diamonds += 1;
         } else {
           rewardType = 'coin';
         }
@@ -129,18 +130,31 @@ function reducer(state, action) {
         ...state,
         isCorrect: correct,
         isAnswered: true,
-        coins,
-        diamonds,
         rewardType,
+        errors: !correct ? state.errors + 1 : state.errors,
       };
     }
 
     case 'NEXT_QUESTION': {
       const { fromReward = false } = action.payload || {};
 
-      // If we're coming from the quiz and were correct, show the reward splash
+      // If we're coming from the quiz and were correct, apply rewards and show the reward splash
       if (!fromReward && state.isCorrect) {
-        return { ...state, screen: SCREENS.REWARD };
+        let { coins, diamonds, rewardType } = state;
+
+        if (rewardType === 'coin') {
+          coins += 1;
+        } else if (rewardType === 'diamond') {
+          coins += 1;
+          diamonds += 1;
+        }
+
+        return {
+          ...state,
+          screen: SCREENS.REWARD,
+          coins,
+          diamonds
+        };
       }
 
       // Check for Win condition
@@ -175,9 +189,13 @@ function reducer(state, action) {
         selectedOption: null,
         isAnswered: false,
         isCorrect: false,
+        rewardType: null,
         screen: SCREENS.QUIZ,
       };
     }
+
+    case 'TOGGLE_MUTE':
+      return { ...state, isMuted: !state.isMuted };
 
     default:
       return state;
@@ -189,8 +207,12 @@ function App() {
   const {
     screen, questionIndex, coins, diamonds,
     selectedOption, isAnswered, isCorrect, rewardType,
-    shuffledOptions, shuffledAnswerIndex
+    shuffledOptions, shuffledAnswerIndex, isMuted, errors
   } = state;
+
+  const toggleMute = () => {
+    dispatch({ type: 'TOGGLE_MUTE' });
+  };
 
   // Transition from Splash to Quiz
   useEffect(() => {
@@ -216,6 +238,7 @@ function App() {
 
   // Handle Reward Sounds
   useEffect(() => {
+    if (isMuted) return;
     if (screen === SCREENS.REWARD) {
       if (rewardType === 'coin') {
         audioFiles.coin.currentTime = 0;
@@ -234,11 +257,11 @@ function App() {
       audioFiles.levelSplash.currentTime = 0;
       audioFiles.levelSplash.play().catch(e => console.error(e));
     }
-  }, [screen, rewardType]);
+  }, [screen, rewardType, isMuted]);
 
   // Handle Answer Sounds (Notification/Reject)
   useEffect(() => {
-    if (isAnswered) {
+    if (isAnswered && !isMuted) {
       // Delay slightly to not conflict with coin sound
       setTimeout(() => {
         const sound = isCorrect ? audioFiles.notification : audioFiles.reject;
@@ -246,13 +269,37 @@ function App() {
         sound.play().catch(e => console.error("Audio play failed:", e));
       }, 100);
     }
-  }, [isAnswered, isCorrect]);
+  }, [isAnswered, isCorrect, isMuted]);
 
   return (
     <div
       className={`game-container ${screen !== SCREENS.START ? 'bg-linear-to-b from-[#FFF9E1] to-[#F3E2A9]' : ''}`}
       style={screen === SCREENS.START ? { backgroundImage: `url('${import.meta.env.BASE_URL}assets/bg_transparent.png')` } : {}}
     >
+
+      {screen !== SCREENS.START && (
+        <div className="absolute top-0 right-4 md:right-8 flex gap-2 md:gap-4 z-50">
+        {errors > 0 ? (
+          <div className="px-2 md:px-4 py-2 flex items-center gap-2 text-red-600">
+            <span className="text-xl md:text-3xl font-bold">Помилки : {errors}</span>
+          </div>
+        ) : null}
+
+          {coins ? (
+            <div className="px-2 md:px-4 py-2 flex items-center gap-2">
+              <img src={`${import.meta.env.BASE_URL}assets/1768855134283-new.png`} alt="coin" className="w-12 h-12 md:w-20 md:h-20" />
+              <span className="text-xl md:text-3xl font-bold">{coins}</span>
+            </div>
+          ) : null}
+
+          {diamonds ? (
+            <div className="px-2 md:px-4 py-2 flex items-center gap-2">
+              <img src={`${import.meta.env.BASE_URL}assets/image7-new.png`} alt="diamond" className="w-14 h-14 md:w-22 md:h-22" />
+              <span className="text-xl md:text-3xl font-bold">{diamonds}</span>
+            </div>
+          ) : null}
+        </div>
+      )}
 
       <div style={{ display: screen === SCREENS.START ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
         <StartScreen onStart={() => dispatch({ type: 'START_LEVEL' })} />
@@ -267,10 +314,10 @@ function App() {
           question={questions[questionIndex]}
           shuffledOptions={shuffledOptions}
           shuffledAnswerIndex={shuffledAnswerIndex}
-          coins={coins}
-          diamonds={diamonds}
           selectedOption={selectedOption}
           isAnswered={isAnswered}
+          isMuted={isMuted}
+          toggleMute={toggleMute}
           handleOptionSelect={(idx) => dispatch({ type: 'SELECT_OPTION', payload: idx })}
           checkAnswer={() => dispatch({ type: 'CHECK_ANSWER' })}
           nextQuestion={() => dispatch({ type: 'NEXT_QUESTION' })}
