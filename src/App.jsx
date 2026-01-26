@@ -88,6 +88,7 @@ const initialState = {
   shuffledAnswerIndex: null,
   isMuted: false,
   errors: 0,
+  currentFont: 'Comfortaa',
 };
 
 function reducer(state, action) {
@@ -194,6 +195,9 @@ function reducer(state, action) {
       };
     }
 
+    case 'SET_FONT':
+      return { ...state, currentFont: action.payload };
+
     case 'TOGGLE_MUTE':
       return { ...state, isMuted: !state.isMuted };
 
@@ -207,7 +211,8 @@ function App() {
   const {
     screen, questionIndex, coins, diamonds,
     selectedOption, isAnswered, isCorrect, rewardType,
-    shuffledOptions, shuffledAnswerIndex, isMuted, errors
+    shuffledOptions, shuffledAnswerIndex, isMuted, errors,
+    currentFont
   } = state;
 
   const toggleMute = () => {
@@ -274,14 +279,38 @@ function App() {
   return (
     <div
       className={`game-container ${screen !== SCREENS.START ? 'bg-linear-to-b from-[#FFF9E1] to-[#F3E2A9]' : ''}`}
-      style={screen === SCREENS.START ? { backgroundImage: `url('${import.meta.env.BASE_URL}assets/bg_transparent.png')` } : {}}
+      style={{
+        fontFamily: currentFont === 'Open Sans' ? 'var(--font-open-sans)' : 
+                    currentFont === 'Andika' ? 'var(--font-andika)' : 
+                    'var(--font-comfortaa)',
+        ...(screen === SCREENS.START ? { backgroundImage: `url('${import.meta.env.BASE_URL}assets/bg_transparent.png')` } : {})
+      }}
     >
 
+   <div className="flex items-center gap-2 bg-white/30 backdrop-blur-sm px-3 py-1 rounded-lg z-50">
+        {['Comfortaa', 'Open Sans', 'Andika'].map(font => (
+          <button
+            key={font}
+            onClick={() => dispatch({ type: 'SET_FONT', payload: font })}
+            className={`px-3 py-1 rounded-md text-sm font-bold cursor-pointer transition-colors ${currentFont === font ? 'bg-blue-500 text-white shadow-md' : 'hover:bg-white/50 text-slate-700'}`}
+            style={{ fontFamily: font === 'Open Sans' ? 'var(--font-open-sans)' : font === 'Andika' ? 'var(--font-andika)' : 'var(--font-comfortaa)' }}
+          >
+            {font.split(' ')[0]}
+          </button>
+        ))}
+      </div>
+   
+
       {screen !== SCREENS.START && (
-        <div className="absolute top-0 right-4 md:right-8 flex gap-2 md:gap-4 z-50">
-        {errors > 0 ? (
+        <div className="top-0 right-4 md:right-8 flex gap-2 md:gap-4 z-50">
+
+
+
+          {errors > 0 ? (
           <div className="px-2 md:px-4 py-2 flex items-center gap-2 text-red-600">
-            <span className="text-xl md:text-3xl font-bold">Помилки : {errors}</span>
+            
+           <img src={`${import.meta.env.BASE_URL}assets/errors.png`} alt="errors" className="w-12 md:w-20" />
+            <span className="text-xl md:text-3xl font-bold">{errors}</span>
           </div>
         ) : null}
 
@@ -309,7 +338,7 @@ function App() {
         <LevelSplashScreen />
       </div>
 
-      <div style={{ display: screen === SCREENS.QUIZ ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ display: screen === SCREENS.QUIZ ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center' }}>
         <QuizScreen
           question={questions[questionIndex]}
           shuffledOptions={shuffledOptions}

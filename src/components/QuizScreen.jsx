@@ -17,38 +17,38 @@ const QuizScreen = ({
     <motion.div
       key="quiz"
       initial={{ x: 300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }}
-      className="w-full pt-16 md:pt-22 lg:pt-0 max-w-4xl px-4 md:px-8 flex flex-col items-center"
+      className="w-full max-h-full overflow-y-auto pt-8 pb-12 md:pt-12 lg:pt-8 max-w-4xl px-4 md:px-8 flex flex-col items-center scrollbar-hide"
     >
 
       {/* Question Card */}
-      <div className="orange-frame w-full p-6 md:p-8 mb-8 text-center">
+      <div className="orange-frame w-full p-4 md:p-6 mb-4 text-center">
         <h3 className="text-3xl md:text-4xl font-bold text-white leading-tight">
           {question.question}
         </h3>
-        {question.image && (
-          <div className="mt-4 flex justify-center">
+       
+      </div>
+ {question.image && (
+          <div className="mt-4 mb-4 flex justify-center">
             <img
-              src={question.image.startsWith('http') ? question.image : `${import.meta.env.BASE_URL}${question.image}`}
+              src={`${import.meta.env.BASE_URL}assets/quiz-images/${question.id}.png`}
               alt={question.question}
-              className="max-h-48 md:max-h-64 rounded-lg object-contain shadow-md"
+              className="max-h-48 md:max-h-64 rounded-md object-contain shadow-md"
             />
           </div>
         )}
-      </div>
-
       {/* Options Grid */}
-      <div className="grid grid-cols-1 gap-3 md:gap-4 w-full">
+      <div className="grid grid-cols-1 gap-3 md:gap-3 w-full">
         {shuffledOptions.map((option, idx) => (
           <button
             key={idx}
             onClick={() => handleOptionSelect(idx)}
-            className={`yellow-button cursor-pointer p-4 md:p-6 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
+            className={`yellow-button cursor-pointer p-2 md:p-3 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
               ${selectedOption === idx && !isAnswered ? 'selected orange-frame!' : ''}
               ${isAnswered && idx === shuffledAnswerIndex ? 'bg-green-400! border-green-600! correct' : ''}
               ${isAnswered && selectedOption === idx && idx !== shuffledAnswerIndex ? 'bg-red-400! border-red-600! wrong' : ''}
             `}
           >
-            <span className="flex min-w-6 min-h-6 items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-white/50 text-md md:text-lg font-bold">{idx + 1}</span>
+            <span className="flex min-w-6 min-h-6 items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-md bg-white/50 text-md md:text-lg font-bold">{idx + 1}</span>
             <span>{option}</span>
           </button>
         ))}
@@ -58,7 +58,7 @@ const QuizScreen = ({
       <div className="mt-6 md:mt-12 w-full flex justify-between items-center">
         <button
           onClick={toggleMute}
-          className="p-4 cursor-pointer rounded-full bg-slate-200/50 hover:bg-slate-300/50 transition-colors text-3xl"
+          className="yellow-button px-4 py-1 text-2xl font-bold next-arrow cursor-pointer"
           title={isMuted ? "Unmute" : "Mute"}
         >
           {isMuted ? '🔇' : '🔊'}
@@ -68,14 +68,14 @@ const QuizScreen = ({
           <button
             onClick={checkAnswer}
             disabled={selectedOption === null}
-            className="blue-button px-8 py-4 text-2xl font-bold cursor-pointer"
+            className="blue-button px-4 py-2 text-2xl font-bold next-arrow cursor-pointer"
           >
             ПЕРЕВІРИТИ
           </button>
         ) : (
           <button
             onClick={() => nextQuestion(false)}
-            className="blue-button px-8 py-4 text-2xl font-bold next-arrow cursor-pointer"
+            className="blue-button px-4 py-2 text-2xl font-bold next-arrow cursor-pointer"
           >
             ДАЛІ
           </button>
@@ -87,7 +87,7 @@ const QuizScreen = ({
           href={question.wiki || "#"}
           target="_blank"
           rel="noopener noreferrer"
-          className="yellow-button px-8 py-4 text-2xl font-bold text-black"
+          className="yellow-button px-4 py-2 text-lg font-bold text-black"
         >
           Повторити Теорію
         </a>
