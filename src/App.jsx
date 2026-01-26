@@ -1,5 +1,4 @@
 import React, { useEffect, useReducer } from 'react';
-import { motion } from 'framer-motion';
 import questions1 from './data/questions.json';
 import questions2 from './data/questions2.json';
 
@@ -40,18 +39,14 @@ const UI_ASSETS = [
   'image11-new.png',
   'win_transparent-new.png',
   'errors.png',
+  ...Array.from({ length: 20 }, (_, i) => `quiz-images/${i + 1}.png`)
 ];
 
-const QUESTION_IMAGES = allQuestions
-  .filter(q => q.image)
-  .map(q => `quiz-images/${q.id}.png`);
-
-const ALL_ASSETS = [...UI_ASSETS, ...QUESTION_IMAGES];
-
-ALL_ASSETS.forEach(src => {
+UI_ASSETS.forEach(src => {
   const img = new Image();
   img.src = `${import.meta.env.BASE_URL}assets/${src}`;
 });
+
 
 
 function usePrevious(value) {
@@ -389,8 +384,9 @@ function App() {
 
       {/* Force Preload Images */}
       <div className="hidden">
-        {ALL_ASSETS.map(src => <img key={src} src={`${import.meta.env.BASE_URL}assets/${src}`} alt="preload" />)}
+        {UI_ASSETS.map(src => <img key={src} src={`${import.meta.env.BASE_URL}assets/${src}`} alt="preload" />)}
       </div>
+
 
     </div>
   );
