@@ -14,7 +14,7 @@ const StartScreen = ({ onStart }) => {
       </h1>
       <button
         onClick={onStart}
-        className="group relative w-24 h-24 yellow-button flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+        className="group relative w-28 h-28 yellow-button items-center justify-center"
       >
         <Play size={48} fill="white" color="white" />
 

@@ -7,7 +7,7 @@ const GameOverScreen = ({ onRestart }) => {
     <motion.div 
       key="gameover"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="flex flex-col w-full bg-black/60 backdrop-blur-xl p-16 sm:mx-2 md:mx-4 lg:mx-6 max-w-[375px] mx-auto rounded-[3rem] border-8 border-slate-700 max-w-lg text-center"
+      className="flex flex-col w-full bg-black/60 backdrop-blur-xl p-16 sm:mx-2 md:mx-4 lg:mx-6 max-w-[375px] mx-auto rounded-[2rem] border-8 border-slate-700 max-w-lg text-center"
     >
        <RefreshCw size={100} className="text-slate-400 mb-8" />
        <h2 className="text-5xl font-bold text-white mb-4">СПРОБУЙ ЩЕ</h2>

@@ -42,7 +42,7 @@ const QuizScreen = ({
           <button
             key={idx}
             onClick={() => handleOptionSelect(idx)}
-            className={`yellow-button p-4 md:p-6 text-xl md:text-2xl font-bold text-slate-800 text-left transition-colors
+            className={`yellow-button p-4 md:p-6 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
               ${selectedOption === idx && !isAnswered ? 'selected orange-frame!' : ''}
               ${isAnswered && idx === shuffledAnswerIndex ? 'bg-green-400! border-green-600! correct' : ''}
               ${isAnswered && selectedOption === idx && idx !== shuffledAnswerIndex ? 'bg-red-400! border-red-600! wrong' : ''}
