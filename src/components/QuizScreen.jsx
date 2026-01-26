@@ -42,7 +42,7 @@ const QuizScreen = ({
           <button
             key={idx}
             onClick={() => handleOptionSelect(idx)}
-            className={`yellow-button p-4 md:p-6 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
+            className={`yellow-button cursor-pointer p-4 md:p-6 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
               ${selectedOption === idx && !isAnswered ? 'selected orange-frame!' : ''}
               ${isAnswered && idx === shuffledAnswerIndex ? 'bg-green-400! border-green-600! correct' : ''}
               ${isAnswered && selectedOption === idx && idx !== shuffledAnswerIndex ? 'bg-red-400! border-red-600! wrong' : ''}
@@ -58,7 +58,7 @@ const QuizScreen = ({
       <div className="mt-6 md:mt-12 w-full flex justify-between items-center">
         <button
           onClick={toggleMute}
-          className="p-4 rounded-full bg-slate-200/50 hover:bg-slate-300/50 transition-colors text-3xl"
+          className="p-4 cursor-pointer rounded-full bg-slate-200/50 hover:bg-slate-300/50 transition-colors text-3xl"
           title={isMuted ? "Unmute" : "Mute"}
         >
           {isMuted ? '🔇' : '🔊'}
@@ -68,14 +68,14 @@ const QuizScreen = ({
           <button
             onClick={checkAnswer}
             disabled={selectedOption === null}
-            className="blue-button px-8 py-4 text-2xl font-bold"
+            className="blue-button px-8 py-4 text-2xl font-bold cursor-pointer"
           >
             ПЕРЕВІРИТИ
           </button>
         ) : (
           <button
             onClick={() => nextQuestion(false)}
-            className="blue-button px-8 py-4 text-2xl font-bold next-arrow"
+            className="blue-button px-8 py-4 text-2xl font-bold next-arrow cursor-pointer"
           >
             ДАЛІ
           </button>
