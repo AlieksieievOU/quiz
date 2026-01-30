@@ -84,17 +84,20 @@ const QuizScreen = ({
         )}
       </div>
 
+      <div className="hidden">
       <div className={`mt-4 w-full flex justify-center transition-opacity duration-300 ${isAnswered && selectedOption !== shuffledAnswerIndex ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <a
-          href={question.wiki || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="yellow-button px-4 py-2 text-lg font-bold text-black"
-        >
-          Повторити Теорію
-        </a>
+              <a
+                href={question.wiki || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="yellow-button px-4 py-2 text-lg font-bold text-black"
+              >
+                Повторити Теорію
+              </a>
+            </div>
       </div>
-    </Motion.div>
+      
+        </Motion.div>
   );
 };
 
