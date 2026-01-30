@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from 'react';
+import { useEffect, useReducer } from 'react';
 import questions1 from './data/level-1/questions.json';
 import questions2 from './data/level-1/questions2.json';
 import questions3 from './data/level-2/questions.json';
