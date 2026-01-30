@@ -35,7 +35,11 @@ export const UI_ASSETS = [
   'image11-new.png',
   'win_transparent-new.png',
   'errors.png',
-  ...Array.from({ length: 20 }, (_, i) => `quiz-images/${i + 1}.png`)
+  ...Array.from({ length: 41 }, (_, i) => {
+    const id = i + 1;
+    const ext = id >= 26 && id <= 39 ? 'jpg' : 'png';
+    return `quiz-images/${id}.${ext}`;
+  })
 ];
 
 export const preloadAssets = () => {

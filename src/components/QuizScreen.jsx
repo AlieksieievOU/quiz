@@ -32,7 +32,7 @@ const QuizScreen = ({
  {question.image && (
           <div className="mt-4 mb-4 flex justify-center">
             <img
-              src={`${import.meta.env.BASE_URL}assets/quiz-images/${question.id}.png`}
+              src={`${import.meta.env.BASE_URL}assets/quiz-images/${question.image || `${question.id}.png`}`}
               alt={question.question}
               className="max-h-48 md:max-h-64 rounded-md object-contain shadow-md"
             />
