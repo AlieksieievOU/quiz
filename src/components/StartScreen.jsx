@@ -8,7 +8,7 @@ const StartScreen = ({ onStart }) => {
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="flex flex-col items-center animate-float"
     >
-      <h1 className="text-4xl md:text-6xl font-bold text-black-100 mb-12 drop-shadow-[0_5px_0_rgba(0,0,0,0.3)] ">
+      <h1 className="text-4xl md:text-6xl font-bold text-black-100 mb-12 ">
         Музична Гра
       </h1>
       <button

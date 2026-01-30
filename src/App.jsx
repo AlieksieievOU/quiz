@@ -105,7 +105,7 @@ function reducer(state, action) {
     case 'START_LEVEL': {
       const level = action.payload?.level || 1;
       const questionsForLevel = QUESTIONS_BY_LEVEL[level] || QUESTIONS_BY_LEVEL[1];
-      const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 10);
+      const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 60);
 
       const firstQuestion = sessionQuestions[0];
       const options = shuffleArray(firstQuestion.options);
@@ -137,7 +137,7 @@ function reducer(state, action) {
       if (correct) {
         // Calculate potential reward, but don't update coins/diamonds yet
         const nextCoins = state.coins + 1;
-        if (nextCoins % 3 === 0 && nextCoins !== 0) {
+        if (nextCoins % 24 === 0 && nextCoins !== 0) {
           rewardType = 'diamond';
         } else {
           rewardType = 'coin';
@@ -176,7 +176,7 @@ function reducer(state, action) {
       }
 
       // Check for Level up or Win condition
-      if (state.diamonds >= 9) {
+      if (state.diamonds >= 24) {
         return {
           ...state,
           rewardType: 'trophy',
@@ -185,10 +185,10 @@ function reducer(state, action) {
       }
 
       // Check for level transitions
-      if (state.currentLevel === 1 && state.diamonds >= 3) {
+      if (state.currentLevel === 1 && state.diamonds >= 24) {
         const nextLevel = 2;
         const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
-        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 10);
+        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 60);
         const firstQuestion = sessionQuestions[0];
         const options = shuffleArray(firstQuestion.options);
 
@@ -208,10 +208,10 @@ function reducer(state, action) {
         };
       }
 
-      if (state.currentLevel === 2 && state.diamonds >= 6) {
+      if (state.currentLevel === 2 && state.diamonds >= 48) {
         const nextLevel = 3;
         const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
-        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 10);
+        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 60);
         const firstQuestion = sessionQuestions[0];
         const options = shuffleArray(firstQuestion.options);
 
@@ -234,7 +234,7 @@ function reducer(state, action) {
       const answeredCount = state.totalQuestionsAnswered + 1;
 
       // Check for Game Over condition - triggered if we reach session end without a level transition/win
-      if (answeredCount >= 10) {
+      if (answeredCount >= 60) {
         return {
           ...state,
           totalQuestionsAnswered: answeredCount,
