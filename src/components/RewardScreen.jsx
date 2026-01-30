@@ -22,7 +22,7 @@ const RewardScreen = ({ rewardType, onRestart }) => {
       {rewardType === 'trophy' && (
         <div className="coin-anim flex flex-col items-center text-center">
           <h2 className="text-6xl font-bold text-slate-800 drop-shadow-md mb-8 px-8">ВІТАЄМО!</h2>
-          <img src={`${import.meta.env.BASE_URL}assets/win_transparent-new.png`} alt="Trophy" className="animate-bounce w-full h-full md:w-100 drop-shadow-2xl mb-8" />
+          <img src={`${import.meta.env.BASE_URL}assets/win_transparent-new.png`} alt="Trophy" className="animate-bounce w-full h-full md:w-100 drop-shadow-2xl mb-2" />
           <button
             onClick={onRestart}
             className="yellow-button px-12 py-6 text-3xl font-bold text-slate-900 animate-bounce"
