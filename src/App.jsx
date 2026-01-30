@@ -1,351 +1,75 @@
-import { useEffect, useReducer } from 'react';
-import questions1 from './data/level-1/questions.json';
-import questions2 from './data/level-1/questions2.json';
-import questions3 from './data/level-2/questions.json';
-import questions4 from './data/level-3/questions.json';
-const allQuestionsLevel1 = [...questions1, ...questions2];
-const allQuestionsLevel2 = [...questions3];
-const allQuestionsLevel3 = [...questions4];
-
-
+import { useEffect } from 'react';
 import './App.css';
 
-// Sounds
-import uiNotificationSound from './assets/sounds/ui_notification.wav';
-import uiRejectSound from './assets/sounds/ui_reject.wav';
-import uiCoinSound from './assets/sounds/ui_coin.wav';
-import uiDiamondSound from './assets/sounds/ui_diamond.wav';
-import uiLevelSplashSound from './assets/sounds/ui_notification_2.wav';
-import uiWinSound from './assets/sounds/ui_win.mp3';
+// Constants & Utilities
+import { SCREENS, GAME_CONFIG, REWARD_TYPES } from './constants/gameConstants';
+import { preloadAssets, playSound, UI_ASSETS } from './utils/assetManager';
 
-// Preload sounds
-const audioFiles = {
-  notification: new Audio(uiNotificationSound),
-  reject: new Audio(uiRejectSound),
-  coin: new Audio(uiCoinSound),
-  diamond: new Audio(uiDiamondSound),
-  levelSplash: new Audio(uiLevelSplashSound),
-  win: new Audio(uiWinSound),
-};
+// Hooks
+import { useGameState } from './hooks/useGameState';
 
-// Set volumes or other properties
-Object.values(audioFiles).forEach(audio => {
-  audio.preload = 'auto';
-  audio.volume = 0.5;
-});
-
-// Preload Images
-const UI_ASSETS = [
-  'bg_transparent.png',
-  '1768855134283-new.png',
-  'image7-new.png',
-  'image11-new.png',
-  'win_transparent-new.png',
-  'errors.png',
-  ...Array.from({ length: 20 }, (_, i) => `quiz-images/${i + 1}.png`)
-];
-
-UI_ASSETS.forEach(src => {
-  const img = new Image();
-  img.src = `${import.meta.env.BASE_URL}assets/${src}`;
-});
-
-// Import Screen Components
+// Screen Components
 import StartScreen from './components/StartScreen';
 import LevelSplashScreen from './components/LevelSplashScreen';
 import QuizScreen from './components/QuizScreen';
 import RewardScreen from './components/RewardScreen';
 import GameOverScreen from './components/GameOverScreen';
 
-const SCREENS = {
-  START: 'start',
-  LEVEL_SPLASH: 'level_splash',
-  QUIZ: 'quiz',
-  REWARD: 'reward',
-  GAME_OVER: 'game_over',
-  WIN: 'win'
-};
-
-const shuffleArray = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
-
-const initialState = {
-  screen: SCREENS.START,
-  questionIndex: 0,
-  coins: 0,
-  diamonds: 0,
-  selectedOption: null,
-  isAnswered: false,
-  isCorrect: false,
-  rewardType: null, // 'coin', 'diamond', 'trophy'
-  totalQuestionsAnswered: 0,
-  shuffledOptions: [],
-  shuffledAnswerIndex: null,
-  isMuted: false,
-  errors: 0,
-  sessionQuestions: [],
-  currentLevel: 1,
-};
-
-const QUESTIONS_BY_LEVEL = {
-  1: allQuestionsLevel1,
-  2: allQuestionsLevel2,
-  3: allQuestionsLevel3
-};
-
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'START_LEVEL': {
-      const level = action.payload?.level || 1;
-      const questionsForLevel = QUESTIONS_BY_LEVEL[level] || QUESTIONS_BY_LEVEL[1];
-      const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 60);
-
-      const firstQuestion = sessionQuestions[0];
-      const options = shuffleArray(firstQuestion.options);
-      return {
-        ...initialState,
-        screen: SCREENS.LEVEL_SPLASH,
-        sessionQuestions,
-        currentLevel: level,
-        shuffledOptions: options,
-        shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
-      };
-    }
-
-
-
-    case 'SET_SCREEN':
-      return { ...state, screen: action.payload };
-
-    case 'SELECT_OPTION':
-      if (state.isAnswered) return state;
-      return { ...state, selectedOption: action.payload };
-
-    case 'CHECK_ANSWER': {
-      if (state.selectedOption === null) return state;
-
-      const correct = state.shuffledAnswerIndex === state.selectedOption;
-      let rewardType = null;
-
-      if (correct) {
-        // Calculate potential reward, but don't update coins/diamonds yet
-        const nextCoins = state.coins + 1;
-        if (nextCoins % 24 === 0 && nextCoins !== 0) {
-          rewardType = 'diamond';
-        } else {
-          rewardType = 'coin';
-        }
-      }
-
-      return {
-        ...state,
-        isCorrect: correct,
-        isAnswered: true,
-        rewardType,
-        errors: !correct ? state.errors + 1 : state.errors,
-      };
-    }
-
-    case 'NEXT_QUESTION': {
-      const { fromReward = false } = action.payload || {};
-
-      // If we're coming from the quiz and were correct, apply rewards and show the reward splash
-      if (!fromReward && state.isCorrect) {
-        let { coins, diamonds, rewardType } = state;
-
-        if (rewardType === 'coin') {
-          coins += 1;
-        } else if (rewardType === 'diamond') {
-          coins += 1;
-          diamonds += 1;
-        }
-
-        return {
-          ...state,
-          screen: SCREENS.REWARD,
-          coins,
-          diamonds
-        };
-      }
-
-      // Check for Level up or Win condition
-      if (state.diamonds >= 24) {
-        return {
-          ...state,
-          rewardType: 'trophy',
-          screen: SCREENS.REWARD,
-        };
-      }
-
-      // Check for level transitions
-      if (state.currentLevel === 1 && state.diamonds >= 24) {
-        const nextLevel = 2;
-        const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
-        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 60);
-        const firstQuestion = sessionQuestions[0];
-        const options = shuffleArray(firstQuestion.options);
-
-        return {
-          ...state,
-          screen: SCREENS.LEVEL_SPLASH,
-          currentLevel: nextLevel,
-          questionIndex: 0,
-          sessionQuestions,
-          shuffledOptions: options,
-          shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
-          totalQuestionsAnswered: 0,
-          selectedOption: null,
-          isAnswered: false,
-          isCorrect: false,
-          rewardType: null,
-        };
-      }
-
-      if (state.currentLevel === 2 && state.diamonds >= 48) {
-        const nextLevel = 3;
-        const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
-        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 60);
-        const firstQuestion = sessionQuestions[0];
-        const options = shuffleArray(firstQuestion.options);
-
-        return {
-          ...state,
-          screen: SCREENS.LEVEL_SPLASH,
-          currentLevel: nextLevel,
-          questionIndex: 0,
-          sessionQuestions,
-          shuffledOptions: options,
-          shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
-          totalQuestionsAnswered: 0,
-          selectedOption: null,
-          isAnswered: false,
-          isCorrect: false,
-          rewardType: null,
-        };
-      }
-
-      const answeredCount = state.totalQuestionsAnswered + 1;
-
-      // Check for Game Over condition - triggered if we reach session end without a level transition/win
-      if (answeredCount >= 60) {
-        return {
-          ...state,
-          totalQuestionsAnswered: answeredCount,
-          screen: SCREENS.GAME_OVER,
-        };
-      }
-
-      // Otherwise, proceed to next question
-      const nextIndex = state.questionIndex + 1;
-      const currentQuestion = state.sessionQuestions[nextIndex];
-      
-      // Safety check for currentQuestion
-      if (!currentQuestion) {
-        return {
-          ...state,
-          totalQuestionsAnswered: answeredCount,
-          screen: SCREENS.GAME_OVER,
-        };
-      }
-
-      const options = shuffleArray(currentQuestion.options);
-
-      return {
-        ...state,
-        questionIndex: nextIndex,
-        shuffledOptions: options,
-        shuffledAnswerIndex: options.indexOf(currentQuestion.options[currentQuestion.answer]),
-        totalQuestionsAnswered: answeredCount,
-        selectedOption: null,
-        isAnswered: false,
-        isCorrect: false,
-        rewardType: null,
-        screen: SCREENS.QUIZ,
-      };
-
-    }
-
-    case 'TOGGLE_MUTE':
-      return { ...state, isMuted: !state.isMuted };
-
-    default:
-      return state;
-  }
-}
+// Preload Images on module load
+preloadAssets();
 
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, actions] = useGameState();
   const {
     screen, questionIndex, coins, diamonds,
     selectedOption, isAnswered, isCorrect, rewardType,
-    shuffledOptions, shuffledAnswerIndex, isMuted, errors
+    shuffledOptions, shuffledAnswerIndex, isMuted, errors,
+    currentLevel, sessionQuestions
   } = state;
-
-  const toggleMute = () => {
-    dispatch({ type: 'TOGGLE_MUTE' });
-  };
 
   // Transition from Splash to Quiz
   useEffect(() => {
     if (screen === SCREENS.LEVEL_SPLASH) {
-      const timer = setTimeout(() => dispatch({ type: 'SET_SCREEN', payload: SCREENS.QUIZ }), 2000);
+      const timer = setTimeout(() => actions.setScreen(SCREENS.QUIZ), GAME_CONFIG.LEVEL_SPLASH_DURATION);
       return () => clearTimeout(timer);
     }
-  }, [screen]);
+  }, [screen, actions]);
 
   // Handle Reward Persistence
   useEffect(() => {
     if (screen === SCREENS.REWARD) {
       const timer = setTimeout(() => {
-        if (rewardType === 'trophy') {
-          dispatch({ type: 'SET_SCREEN', payload: SCREENS.WIN });
+        if (rewardType === REWARD_TYPES.TROPHY) {
+          actions.setScreen(SCREENS.WIN);
         } else {
-          dispatch({ type: 'NEXT_QUESTION', payload: { fromReward: true } });
+          actions.nextQuestion(true);
         }
-      }, 1500);
+      }, GAME_CONFIG.REWARD_DURATION);
       return () => clearTimeout(timer);
     }
-  }, [screen, rewardType]);
+  }, [screen, rewardType, actions]);
 
-  // Handle Reward Sounds
+  // Handle Reward & Ambient Sounds
   useEffect(() => {
     if (isMuted) return;
+
     if (screen === SCREENS.REWARD) {
-      if (rewardType === 'coin') {
-        audioFiles.coin.currentTime = 0;
-        audioFiles.coin.play().catch(e => console.error(e));
-      } else if (rewardType === 'diamond') {
-        audioFiles.diamond.currentTime = 0;
-        audioFiles.diamond.play().catch(e => console.error(e));
-      }
-    } else if (screen === SCREENS.WIN) {
-      audioFiles.win.currentTime = 0;
-      audioFiles.win.play().catch(e => console.error(e));
-    } else if (screen === SCREENS.GAME_OVER) {
-      audioFiles.reject.currentTime = 0;
-      audioFiles.reject.play().catch(e => console.error(e));
-    } else if (screen === SCREENS.LEVEL_SPLASH) {
-      audioFiles.levelSplash.currentTime = 0;
-      audioFiles.levelSplash.play().catch(e => console.error(e));
-    }
+      if (rewardType === REWARD_TYPES.COIN) playSound('coin', isMuted);
+      else if (rewardType === REWARD_TYPES.DIAMOND) playSound('diamond', isMuted);
+    } 
+    else if (screen === SCREENS.WIN) playSound('win', isMuted);
+    else if (screen === SCREENS.GAME_OVER) playSound('reject', isMuted);
+    else if (screen === SCREENS.LEVEL_SPLASH) playSound('levelSplash', isMuted);
   }, [screen, rewardType, isMuted]);
 
-  // Handle Answer Sounds (Notification/Reject)
+  // Handle Answer Sounds (Success/Failure)
   useEffect(() => {
     if (isAnswered && !isMuted) {
-      // Delay slightly to not conflict with coin sound
-      setTimeout(() => {
-        const sound = isCorrect ? audioFiles.notification : audioFiles.reject;
-        sound.currentTime = 0;
-        sound.play().catch(e => console.error("Audio play failed:", e));
+      // Delay slightly to not conflict with reward sounds if applicable
+      const timer = setTimeout(() => {
+        playSound(isCorrect ? 'notification' : 'reject', isMuted);
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isAnswered, isCorrect, isMuted]);
 
@@ -357,78 +81,70 @@ function App() {
         ...(screen === SCREENS.START ? { backgroundImage: `url('${import.meta.env.BASE_URL}assets/bg_transparent.png')` } : {})
       }}
     >
-
-   
-
+      {/* HUD / Stats */}
       {screen !== SCREENS.START && (
         <div className="top-0 right-4 md:right-8 flex gap-2 md:gap-4 z-50">
+          {errors > 0 && (
+            <div className="px-2 md:px-4 py-2 flex items-center gap-2">
+              <img src={`${import.meta.env.BASE_URL}assets/errors.png`} alt="errors" className="w-12 md:w-20" />
+              <span className="text-xl md:text-3xl font-bold">{errors}</span>
+            </div>
+          )}
 
-
-
-          {errors > 0 ? (
-          <div className="px-2 md:px-4 py-2 flex items-center gap-2">
-            
-           <img src={`${import.meta.env.BASE_URL}assets/errors.png`} alt="errors" className="w-12 md:w-20" />
-            <span className="text-xl md:text-3xl font-bold">{errors}</span>
-          </div>
-        ) : null}
-
-          {coins ? (
+          {coins > 0 && (
             <div className="px-2 md:px-4 py-2 flex items-center gap-2">
               <img src={`${import.meta.env.BASE_URL}assets/1768855134283-new.png`} alt="coin" className="w-12 h-12 md:w-20 md:h-20" />
               <span className="text-xl md:text-3xl font-bold">{coins}</span>
             </div>
-          ) : null}
+          )}
 
-          {diamonds ? (
+          {diamonds > 0 && (
             <div className="px-2 md:px-4 py-2 flex items-center gap-2">
               <img src={`${import.meta.env.BASE_URL}assets/image7-new.png`} alt="diamond" className="w-14 h-14 md:w-22 md:h-22" />
               <span className="text-xl md:text-3xl font-bold">{diamonds}</span>
             </div>
-          ) : null}
+          )}
         </div>
       )}
 
+      {/* Screen Renderers */}
       <div style={{ display: screen === SCREENS.START ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-        <StartScreen onStart={() => dispatch({ type: 'START_LEVEL' })} />
+        <StartScreen onStart={() => actions.startLevel(1)} />
       </div>
 
       <div style={{ display: screen === SCREENS.LEVEL_SPLASH ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-        <LevelSplashScreen level={state.currentLevel} />
+        <LevelSplashScreen level={currentLevel} />
       </div>
 
-      {screen === SCREENS.QUIZ && state.sessionQuestions[questionIndex] && (
+      {screen === SCREENS.QUIZ && sessionQuestions[questionIndex] && (
         <div className="w-full h-full flex justify-center">
           <QuizScreen
-            question={state.sessionQuestions[questionIndex]}
+            question={sessionQuestions[questionIndex]}
             shuffledOptions={shuffledOptions}
             shuffledAnswerIndex={shuffledAnswerIndex}
             selectedOption={selectedOption}
             isAnswered={isAnswered}
             isMuted={isMuted}
-            toggleMute={toggleMute}
-            handleOptionSelect={(idx) => dispatch({ type: 'SELECT_OPTION', payload: idx })}
-            checkAnswer={() => dispatch({ type: 'CHECK_ANSWER' })}
-            nextQuestion={() => dispatch({ type: 'NEXT_QUESTION' })}
+            toggleMute={actions.toggleMute}
+            handleOptionSelect={actions.selectOption}
+            checkAnswer={actions.checkAnswer}
+            nextQuestion={actions.nextQuestion}
           />
         </div>
       )}
 
-
       <div style={{ display: (screen === SCREENS.REWARD || screen === SCREENS.WIN) ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-        <RewardScreen rewardType={rewardType} onRestart={() => dispatch({ type: 'SET_SCREEN', payload: SCREENS.START })} />
+        <RewardScreen rewardType={rewardType} onRestart={() => actions.setScreen(SCREENS.START)} />
       </div>
 
       <div style={{ display: screen === SCREENS.GAME_OVER ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-        <GameOverScreen onRestart={() => dispatch({ type: 'SET_SCREEN', payload: SCREENS.START })} />
+        <GameOverScreen onRestart={() => actions.setScreen(SCREENS.START)} />
       </div>
 
-      {/* Force Preload Images */}
+      {/* Force Preload Images (Fallback) */}
       <div className="hidden">
         {UI_ASSETS.map(src => <img key={src} src={`${import.meta.env.BASE_URL}assets/${src}`} alt="preload" />)}
       </div>
-
-
     </div>
   );
 }
