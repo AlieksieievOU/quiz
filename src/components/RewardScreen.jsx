@@ -1,9 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const RewardScreen = ({ rewardType, onRestart }) => {
   return (
-    <motion.div
+    <Motion.div
       key="reward"
       initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
       className="flex flex-col items-center justify-center"
@@ -32,7 +31,7 @@ const RewardScreen = ({ rewardType, onRestart }) => {
           </button>
         </div>
       )}
-    </motion.div>
+    </Motion.div>
   );
 };
 

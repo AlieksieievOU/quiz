@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const QuizScreen = ({
   question,
@@ -17,7 +16,7 @@ const QuizScreen = ({
 
   return (
 
-    <motion.div
+    <Motion.div
       key="quiz"
       initial={{ x: 300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }}
       className="w-full max-h-full overflow-y-auto pt-8 pb-12 md:pt-12 lg:pt-8 max-w-4xl px-4 md:px-8 flex flex-col items-center scrollbar-hide"
@@ -95,7 +94,7 @@ const QuizScreen = ({
           Повторити Теорію
         </a>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 

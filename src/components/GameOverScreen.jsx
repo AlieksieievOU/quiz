@@ -1,10 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
 const GameOverScreen = ({ onRestart }) => {
   return (
-    <motion.div 
+    <Motion.div 
       key="gameover"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
       className="flex flex-col w-full  flex-center items-center justify-center p-16 sm:mx-4 md:mx-4 lg:mx-6 mx-auto text-center"
@@ -18,7 +17,7 @@ const GameOverScreen = ({ onRestart }) => {
       >
         НА ГОЛОВНУ
       </button>
-    </motion.div>
+    </Motion.div>
   );
 };
 

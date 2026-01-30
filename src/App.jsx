@@ -1,8 +1,11 @@
 import React, { useEffect, useReducer } from 'react';
-import questions1 from './data/questions.json';
-import questions2 from './data/questions2.json';
-
-const allQuestions = [...questions1, ...questions2];
+import questions1 from './data/level-1/questions.json';
+import questions2 from './data/level-1/questions2.json';
+import questions3 from './data/level-2/questions.json';
+import questions4 from './data/level-3/questions.json';
+const allQuestionsLevel1 = [...questions1, ...questions2];
+const allQuestionsLevel2 = [...questions3];
+const allQuestionsLevel3 = [...questions4];
 
 
 import './App.css';
@@ -47,16 +50,6 @@ UI_ASSETS.forEach(src => {
   img.src = `${import.meta.env.BASE_URL}assets/${src}`;
 });
 
-
-
-function usePrevious(value) {
-  const ref = React.useRef();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
-
 // Import Screen Components
 import StartScreen from './components/StartScreen';
 import LevelSplashScreen from './components/LevelSplashScreen';
@@ -96,15 +89,23 @@ const initialState = {
   shuffledAnswerIndex: null,
   isMuted: false,
   errors: 0,
-  currentFont: 'Comfortaa',
   sessionQuestions: [],
+  currentLevel: 1,
+};
+
+const QUESTIONS_BY_LEVEL = {
+  1: allQuestionsLevel1,
+  2: allQuestionsLevel2,
+  3: allQuestionsLevel3
 };
 
 
 function reducer(state, action) {
   switch (action.type) {
     case 'START_LEVEL': {
-      const sessionQuestions = shuffleArray(allQuestions).slice(0, 10);
+      const level = action.payload?.level || 1;
+      const questionsForLevel = QUESTIONS_BY_LEVEL[level] || QUESTIONS_BY_LEVEL[1];
+      const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 10);
 
       const firstQuestion = sessionQuestions[0];
       const options = shuffleArray(firstQuestion.options);
@@ -112,6 +113,7 @@ function reducer(state, action) {
         ...initialState,
         screen: SCREENS.LEVEL_SPLASH,
         sessionQuestions,
+        currentLevel: level,
         shuffledOptions: options,
         shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
       };
@@ -173,8 +175,8 @@ function reducer(state, action) {
         };
       }
 
-      // Check for Win condition
-      if (state.diamonds >= 3) {
+      // Check for Level up or Win condition
+      if (state.diamonds >= 9) {
         return {
           ...state,
           rewardType: 'trophy',
@@ -182,10 +184,57 @@ function reducer(state, action) {
         };
       }
 
+      // Check for level transitions
+      if (state.currentLevel === 1 && state.diamonds >= 3) {
+        const nextLevel = 2;
+        const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
+        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 10);
+        const firstQuestion = sessionQuestions[0];
+        const options = shuffleArray(firstQuestion.options);
+
+        return {
+          ...state,
+          screen: SCREENS.LEVEL_SPLASH,
+          currentLevel: nextLevel,
+          questionIndex: 0,
+          sessionQuestions,
+          shuffledOptions: options,
+          shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
+          totalQuestionsAnswered: 0,
+          selectedOption: null,
+          isAnswered: false,
+          isCorrect: false,
+          rewardType: null,
+        };
+      }
+
+      if (state.currentLevel === 2 && state.diamonds >= 6) {
+        const nextLevel = 3;
+        const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
+        const sessionQuestions = shuffleArray(questionsForLevel).slice(0, 10);
+        const firstQuestion = sessionQuestions[0];
+        const options = shuffleArray(firstQuestion.options);
+
+        return {
+          ...state,
+          screen: SCREENS.LEVEL_SPLASH,
+          currentLevel: nextLevel,
+          questionIndex: 0,
+          sessionQuestions,
+          shuffledOptions: options,
+          shuffledAnswerIndex: options.indexOf(firstQuestion.options[firstQuestion.answer]),
+          totalQuestionsAnswered: 0,
+          selectedOption: null,
+          isAnswered: false,
+          isCorrect: false,
+          rewardType: null,
+        };
+      }
+
       const answeredCount = state.totalQuestionsAnswered + 1;
 
-      // Check for Game Over condition
-      if (answeredCount >= 10 && state.diamonds < 3) {
+      // Check for Game Over condition - triggered if we reach session end without a level transition/win
+      if (answeredCount >= 10) {
         return {
           ...state,
           totalQuestionsAnswered: answeredCount,
@@ -196,6 +245,16 @@ function reducer(state, action) {
       // Otherwise, proceed to next question
       const nextIndex = state.questionIndex + 1;
       const currentQuestion = state.sessionQuestions[nextIndex];
+      
+      // Safety check for currentQuestion
+      if (!currentQuestion) {
+        return {
+          ...state,
+          totalQuestionsAnswered: answeredCount,
+          screen: SCREENS.GAME_OVER,
+        };
+      }
+
       const options = shuffleArray(currentQuestion.options);
 
       return {
@@ -213,9 +272,6 @@ function reducer(state, action) {
 
     }
 
-    case 'SET_FONT':
-      return { ...state, currentFont: action.payload };
-
     case 'TOGGLE_MUTE':
       return { ...state, isMuted: !state.isMuted };
 
@@ -229,8 +285,7 @@ function App() {
   const {
     screen, questionIndex, coins, diamonds,
     selectedOption, isAnswered, isCorrect, rewardType,
-    shuffledOptions, shuffledAnswerIndex, isMuted, errors,
-    currentFont
+    shuffledOptions, shuffledAnswerIndex, isMuted, errors
   } = state;
 
   const toggleMute = () => {
@@ -298,25 +353,11 @@ function App() {
     <div
       className={`game-container ${screen !== SCREENS.START ? 'bg-linear-to-b from-[#FFF9E1] to-[#F3E2A9]' : ''}`}
       style={{
-        fontFamily: currentFont === 'Open Sans' ? 'var(--font-open-sans)' : 
-                    currentFont === 'Andika' ? 'var(--font-andika)' : 
-                    'var(--font-comfortaa)',
+        fontFamily: 'var(--font-open-sans)',
         ...(screen === SCREENS.START ? { backgroundImage: `url('${import.meta.env.BASE_URL}assets/bg_transparent.png')` } : {})
       }}
     >
 
-   <div className="flex items-center gap-2 bg-white/30 backdrop-blur-sm px-3 py-1 rounded-lg z-50">
-        {['Comfortaa', 'Open Sans', 'Andika'].map(font => (
-          <button
-            key={font}
-            onClick={() => dispatch({ type: 'SET_FONT', payload: font })}
-            className={`px-3 py-1 rounded-md text-sm font-bold cursor-pointer transition-colors ${currentFont === font ? 'bg-blue-500 text-white shadow-md' : 'hover:bg-white/50 text-slate-700'}`}
-            style={{ fontFamily: font === 'Open Sans' ? 'var(--font-open-sans)' : font === 'Andika' ? 'var(--font-andika)' : 'var(--font-comfortaa)' }}
-          >
-            {font.split(' ')[0]}
-          </button>
-        ))}
-      </div>
    
 
       {screen !== SCREENS.START && (
@@ -353,7 +394,7 @@ function App() {
       </div>
 
       <div style={{ display: screen === SCREENS.LEVEL_SPLASH ? "flex" : "none", width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-        <LevelSplashScreen />
+        <LevelSplashScreen level={state.currentLevel} />
       </div>
 
       {screen === SCREENS.QUIZ && state.sessionQuestions[questionIndex] && (
