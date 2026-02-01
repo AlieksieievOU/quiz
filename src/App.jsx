@@ -4,6 +4,15 @@ import './App.css';
 // Constants & Utilities
 import { SCREENS, GAME_CONFIG, REWARD_TYPES } from './constants/gameConstants';
 import { preloadAssets, playSound, UI_ASSETS } from './utils/assetManager';
+import { 
+  initGA, 
+  trackQuizStart, 
+  trackQuizComplete, 
+  trackIncorrectAnswer, 
+  trackCorrectAnswer,
+  trackLevelProgress,
+  trackReward
+} from './utils/analytics';
 
 // Hooks
 import { useGameState } from './hooks/useGameState';
@@ -14,6 +23,9 @@ import LevelSplashScreen from './components/LevelSplashScreen';
 import QuizScreen from './components/QuizScreen';
 import RewardScreen from './components/RewardScreen';
 import GameOverScreen from './components/GameOverScreen';
+
+// Analytics Testing (Development only)
+import './utils/analyticsTest';
 
 // Preload Images on module load
 preloadAssets();
@@ -26,6 +38,55 @@ function App() {
     shuffledOptions, shuffledAnswerIndex, isMuted, errors,
     currentLevel, sessionQuestions
   } = state;
+
+  // Initialize Google Analytics on mount
+  useEffect(() => {
+    initGA();
+  }, []);
+
+  // Track quiz start
+  useEffect(() => {
+    if (screen === SCREENS.LEVEL_SPLASH) {
+      trackQuizStart(currentLevel);
+      trackLevelProgress(currentLevel);
+    }
+  }, [screen, currentLevel]);
+
+  // Track answers (correct/incorrect)
+  useEffect(() => {
+    if (isAnswered && sessionQuestions[questionIndex]) {
+      const question = sessionQuestions[questionIndex];
+      const selectedAnswer = shuffledOptions[selectedOption];
+      const correctAnswer = shuffledOptions[shuffledAnswerIndex];
+      
+      if (isCorrect) {
+        trackCorrectAnswer(question.id, question.question);
+      } else {
+        trackIncorrectAnswer(
+          question.id, 
+          question.question, 
+          selectedAnswer, 
+          correctAnswer, 
+          currentLevel
+        );
+      }
+    }
+  }, [isAnswered, isCorrect, questionIndex, sessionQuestions, shuffledOptions, selectedOption, shuffledAnswerIndex, currentLevel]);
+
+  // Track rewards
+  useEffect(() => {
+    if (screen === SCREENS.REWARD && rewardType) {
+      trackReward(rewardType, coins, diamonds);
+    }
+  }, [screen, rewardType, coins, diamonds]);
+
+  // Track quiz completion
+  useEffect(() => {
+    if (screen === SCREENS.WIN || screen === SCREENS.GAME_OVER) {
+      const outcome = screen === SCREENS.WIN ? 'win' : 'game_over';
+      trackQuizComplete(outcome, { coins, diamonds, errors });
+    }
+  }, [screen, coins, diamonds, errors]);
 
   // Transition from Splash to Quiz
   useEffect(() => {
