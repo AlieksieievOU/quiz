@@ -9,17 +9,21 @@ let quizStartTime = null;
 
 export const initGA = () => {
   if (!isInitialized && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+    const isHttps = window.location.protocol === 'https:';
+    
     ReactGA.initialize(GA_MEASUREMENT_ID, {
       gaOptions: {
         anonymizeIp: true,
       },
       gtagOptions: {
-        cookie_domain: 'auto',
-        cookie_flags: 'SameSite=None;Secure',
+        // 'none' forces the cookie to be set on the specific subdomain (e.g. alieksieievou.github.io)
+        // rather than attempting to set it on the parent (.github.io), which is blocked.
+        cookie_domain: 'none',
+        cookie_flags: isHttps ? 'SameSite=None;Secure' : '',
       }
     });
     isInitialized = true;
-    console.log('Google Analytics initialized');
+    console.log('Google Analytics initialized with robust cookie settings');
   }
 };
 
