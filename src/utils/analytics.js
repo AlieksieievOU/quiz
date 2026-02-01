@@ -11,8 +11,12 @@ export const initGA = () => {
   if (!isInitialized && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
     ReactGA.initialize(GA_MEASUREMENT_ID, {
       gaOptions: {
-        anonymizeIp: true, // Privacy setting
+        anonymizeIp: true,
       },
+      gtagOptions: {
+        cookie_domain: 'auto',
+        cookie_flags: 'SameSite=None;Secure',
+      }
     });
     isInitialized = true;
     console.log('Google Analytics initialized');
