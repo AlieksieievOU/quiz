@@ -1,4 +1,4 @@
-import { useReducer, useMemo } from 'react';
+import { useReducer, useMemo, useEffect } from 'react';
 import { SCREENS, INITIAL_STATE, GAME_CONFIG, REWARD_TYPES } from '../constants/gameConstants';
 import { shuffleArray, prepareQuestion } from '../utils/gameUtils';
 
@@ -13,17 +13,34 @@ const QUESTIONS_BY_LEVEL = {
   3: [...questions4]
 };
 
+const STORAGE_KEY = 'quiz_game_state_v1';
+
 function reducer(state, action) {
   switch (action.type) {
     case 'START_LEVEL': {
       const level = action.payload?.level || 1;
       const questionsForLevel = QUESTIONS_BY_LEVEL[level] || QUESTIONS_BY_LEVEL[1];
-      const sessionQuestions = shuffleArray(questionsForLevel).slice(0, GAME_CONFIG.QUESTIONS_PER_SESSION);
+      
+      // Filter out questions that have already been answered correctly
+      // Unless all questions are completed, then cycle back or reset (here we recycle if fewer than session needs)
+      const previouslyCompleted = new Set(state.completedQuestions || []);
+      let availableQuestions = questionsForLevel.filter(q => !previouslyCompleted.has(q.id));
+      
+      // If run out of questions, maybe recycle everything?
+      // Or just take what's left. For now, if empty, recycle all to keep game playable.
+      if (availableQuestions.length === 0) {
+        availableQuestions = [...questionsForLevel];
+      }
+
+      const sessionQuestions = shuffleArray(availableQuestions).slice(0, GAME_CONFIG.QUESTIONS_PER_SESSION);
 
       const { options, answerIndex } = prepareQuestion(sessionQuestions[0]);
       
       return {
         ...INITIAL_STATE,
+        // Preserve Volume preference and Completed Questions history
+        isMuted: state.isMuted,
+        completedQuestions: state.completedQuestions || [],
         screen: SCREENS.LEVEL_SPLASH,
         sessionQuestions,
         currentLevel: level,
@@ -53,12 +70,20 @@ function reducer(state, action) {
           rewardType = REWARD_TYPES.COIN;
         }
       }
+      
+      // Only track as "Completed" if correct and ensure unique
+      const currentQ = state.sessionQuestions[state.questionIndex];
+      let newCompleted = state.completedQuestions || [];
+      if (correct && currentQ && !newCompleted.includes(currentQ.id)) {
+        newCompleted = [...newCompleted, currentQ.id];
+      }
 
       return {
         ...state,
         isCorrect: correct,
         isAnswered: true,
         rewardType,
+        completedQuestions: newCompleted, // Persist correct answers
         errors: !correct ? state.errors + 1 : state.errors,
       };
     }
@@ -171,8 +196,35 @@ function transitionToLevel(state, nextLevel) {
   };
 }
 
+// Lazy initializer for state
+const getInitialState = () => {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      return JSON.parse(savedState);
+    }
+  } catch (error) {
+    console.warn('Failed to load game state from local storage', error);
+  }
+  return INITIAL_STATE;
+};
+
 export function useGameState() {
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  // Use getInitialState as useReducer's init function (3rd arg) requires a slightly different signature if init arg is passed
+  // Or simpler: pass it as 2nd arg by calling it.
+  // Standard Hook pattern: useReducer(reducer, initialArg, init?) 
+  // We can just pass the result of getInitialState() as the 2nd arg.
+  // Ideally, use a lazy init: useReducer(reducer, null, getInitialState) 
+  const [state, dispatch] = useReducer(reducer, null, getInitialState);
+
+  // Persistence Effect
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.warn('Failed to save game state to local storage', error);
+    }
+  }, [state]);
 
   const actions = useMemo(() => ({
     startLevel: (level) => dispatch({ type: 'START_LEVEL', payload: { level } }),

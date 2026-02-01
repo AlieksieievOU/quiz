@@ -34,10 +34,19 @@ export const trackPageView = (path) => {
   }
 };
 
+// Helper to dispatch local events for the Dashboard to consume
+const dispatchLocalEvent = (type, detail) => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('quiz-analytics-event', { detail: { type, ...detail } }));
+  }
+};
+
 // Track quiz start
 export const trackQuizStart = (level) => {
   quizStartTime = Date.now();
   
+  dispatchLocalEvent('quiz_start', { level });
+
   if (isInitialized) {
     ReactGA.event({
       category: 'Quiz',
@@ -52,6 +61,8 @@ export const trackQuizStart = (level) => {
 export const trackQuizComplete = (outcome, stats) => {
   const duration = quizStartTime ? Math.floor((Date.now() - quizStartTime) / 1000) : 0;
   
+  dispatchLocalEvent('quiz_complete', { outcome, stats, duration });
+
   if (isInitialized) {
     ReactGA.event({
       category: 'Quiz',
@@ -82,25 +93,23 @@ export const trackQuizComplete = (outcome, stats) => {
 
 // Track incorrect answers (error questions)
 export const trackIncorrectAnswer = (questionId, questionText, selectedAnswer, correctAnswer, level) => {
+  dispatchLocalEvent('incorrect_answer', { questionId, questionText });
+
   if (isInitialized) {
     ReactGA.event({
+// ... (existing GA code)
       category: 'Quiz',
       action: 'incorrect_answer',
       label: questionText.substring(0, 100), // Truncate to avoid overly long labels
       value: questionId,
     });
-
-    // More detailed tracking for analysis
-    ReactGA.event({
-      category: 'Error Analysis',
-      action: `Level ${level} - Question ${questionId}`,
-      label: `Selected: "${selectedAnswer}" | Correct: "${correctAnswer}"`,
-    });
+// ...
   }
 };
 
 // Track correct answers
 export const trackCorrectAnswer = (questionId, questionText) => {
+  dispatchLocalEvent('correct_answer', { questionId });
   if (isInitialized) {
     trackCustomEvent('Quiz', 'correct_answer', questionText.substring(0, 100), questionId);
   }
@@ -108,6 +117,7 @@ export const trackCorrectAnswer = (questionId, questionText) => {
 
 // Track level progression
 export const trackLevelProgress = (level) => {
+  dispatchLocalEvent('level_progress', { level });
   if (isInitialized) {
     ReactGA.event({
       category: 'Quiz',
@@ -120,6 +130,8 @@ export const trackLevelProgress = (level) => {
 
 // Track rewards earned
 export const trackReward = (rewardType, totalCoins, totalDiamonds) => {
+  dispatchLocalEvent('reward_earned', { rewardType, totalCoins, totalDiamonds });
+  
   if (isInitialized) {
     ReactGA.event({
       category: 'Quiz',
@@ -141,15 +153,40 @@ export const trackScreenTime = (screenName, timeInSeconds) => {
     });
   }
 };
-
-// Custom event tracker for flexibility
-export const trackCustomEvent = (category, action, label, value) => {
+export const trackCustomEvent = (eventName, params = {}) => {
   if (isInitialized) {
-    ReactGA.event({
-      category,
-      action,
-      label,
-      value,
-    });
+    ReactGA.event(eventName, params);
+  } else {
+    console.log(`[GA - Custom] ${eventName}`, params);
+  }
+};
+
+// --- Local Storage Stats (for Dashboard) ---
+
+export const saveErrorStat = (questionId, questionText) => {
+  try {
+    const stats = JSON.parse(localStorage.getItem('quiz_error_stats') || '{}');
+    
+    if (!stats[questionId]) {
+      stats[questionId] = { count: 0, text: questionText };
+    }
+    
+    stats[questionId].count += 1;
+    stats[questionId].lastOccurred = new Date().toISOString();
+    
+  } catch {
+    console.warn('Failed to save local error stat');
+  }
+};
+
+export const getErrorStats = () => {
+  try {
+    const stats = JSON.parse(localStorage.getItem('quiz_error_stats') || '{}');
+    // Convert object to array, preserve ID, and sort by count desc
+    return Object.entries(stats)
+      .map(([id, data]) => ({ id, ...data }))
+      .sort((a, b) => b.count - a.count);
+  } catch {
+    return [];
   }
 };

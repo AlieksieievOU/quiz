@@ -39,4 +39,5 @@ export const INITIAL_STATE = {
   errors: 0,
   sessionQuestions: [],
   currentLevel: 1,
+  completedQuestions: [], // IDs of correctly answered questions
 };
