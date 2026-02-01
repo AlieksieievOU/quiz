@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion as Motion } from 'framer-motion';
 import { ArrowLeft, Activity, Users, Clock, AlertCircle, CheckCircle, BarChart3, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getErrorStats } from '../utils/analytics';
@@ -114,7 +114,7 @@ const AnalyticsDashboard = () => {
                 <div className="p-8 text-center text-slate-400">Waiting for events...</div>
               ) : (
                 events.map(event => (
-                  <motion.div 
+                  <Motion.div 
                     key={event.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -128,7 +128,7 @@ const AnalyticsDashboard = () => {
                       <p className="text-xs text-slate-400">{event.user}</p>
                     </div>
                     <span className="text-xs font-mono text-slate-400">{event.time}</span>
-                  </motion.div>
+                  </Motion.div>
                 ))
               )}
             </div>
