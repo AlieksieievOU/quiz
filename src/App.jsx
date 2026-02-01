@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { initGA } from './utils/analytics';
 import Game from './Game';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
 import './App.css';
 
 function App() {
@@ -25,7 +24,6 @@ function RoutesWrapper() {
   return (
     <Routes>
       <Route path="/" element={<Game />} />
-      <Route path="/analytics" element={<AnalyticsDashboard />} />
     </Routes>
   );
 }

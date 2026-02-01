@@ -163,17 +163,28 @@ export const trackCustomEvent = (eventName, params = {}) => {
 
 // --- Local Storage Stats (for Dashboard) ---
 
-export const saveErrorStat = (questionId, questionText) => {
+export const saveErrorStat = (questionId, questionText, selectedAnswer) => {
   try {
     const stats = JSON.parse(localStorage.getItem('quiz_error_stats') || '{}');
     
     if (!stats[questionId]) {
-      stats[questionId] = { count: 0, text: questionText };
+      stats[questionId] = { 
+        count: 0, 
+        text: questionText,
+        wrongAnswers: {} // Map of answer -> count
+      };
     }
     
     stats[questionId].count += 1;
     stats[questionId].lastOccurred = new Date().toISOString();
     
+    // Track specific wrong answer frequency
+    if (selectedAnswer) {
+      stats[questionId].wrongAnswers = stats[questionId].wrongAnswers || {};
+      stats[questionId].wrongAnswers[selectedAnswer] = (stats[questionId].wrongAnswers[selectedAnswer] || 0) + 1;
+    }
+    
+    localStorage.setItem('quiz_error_stats', JSON.stringify(stats));
   } catch {
     console.warn('Failed to save local error stat');
   }

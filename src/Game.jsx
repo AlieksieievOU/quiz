@@ -70,7 +70,7 @@ function Game() {
           correctAnswer, 
           currentLevel
         );
-        saveErrorStat(question.id, question.question);
+        saveErrorStat(question.id, question.question, selectedAnswer);
       }
     }
   }, [isAnswered, isCorrect, questionIndex, sessionQuestions, shuffledOptions, selectedOption, shuffledAnswerIndex, currentLevel]);
