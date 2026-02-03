@@ -2,6 +2,7 @@ import { motion as Motion } from 'framer-motion';
 import DragMatchQuestion from './DragMatchQuestion';
 
 const QuizScreen = ({
+  onRestart,
   question,
   shuffledOptions,
   shuffledAnswerIndex,
@@ -84,7 +85,7 @@ const QuizScreen = ({
             <button
             onClick={() => {
               localStorage.removeItem('quiz_game_state_v2');
-              window.location.href = '/';
+              onRestart();
             }}
             className="yellow-button px-4 py-1 text-2xl font-bold next-arrow cursor-pointer"
             title="Reset and go home"

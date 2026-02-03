@@ -182,6 +182,7 @@ function Game() {
       {screen === SCREENS.QUIZ && sessionQuestions[questionIndex] && (
         <div className="w-full h-full flex justify-center">
           <QuizScreen
+          onRestart={() => actions.setScreen(SCREENS.START)}
             question={sessionQuestions[questionIndex]}
             shuffledOptions={shuffledOptions}
             shuffledAnswerIndex={shuffledAnswerIndex}
