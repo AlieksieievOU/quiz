@@ -80,13 +80,27 @@ const QuizScreen = ({
 
       {/* Inactive Arrow until answered */}
       <div className="mt-6 md:mt-12 w-full flex justify-between items-center">
-        <button
-          onClick={toggleMute}
-          className="yellow-button px-4 py-1 text-2xl font-bold next-arrow cursor-pointer"
-          title={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? '🔇' : '🔊'}
-        </button>
+        <div className="flex gap-2">
+            <button
+            onClick={() => {
+              localStorage.removeItem('quiz_game_state_v2');
+              window.location.href = '/';
+            }}
+            className="yellow-button px-4 py-1 text-2xl font-bold next-arrow cursor-pointer"
+            title="Reset and go home"
+          >
+            🏠
+          </button>
+          <button
+            onClick={toggleMute}
+            className="yellow-button px-4 py-1 text-2xl font-bold next-arrow cursor-pointer"
+            title={isMuted ? "Unmute" : "Mute"}
+          >
+            {isMuted ? '🔇' : '🔊'}
+          </button>
+          
+        
+        </div>
 
         {!isAnswered ? (
           <button
