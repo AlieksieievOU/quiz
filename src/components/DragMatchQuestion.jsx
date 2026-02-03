@@ -15,7 +15,7 @@ const DragMatchQuestion = ({
   };
 
   return (
-    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    <div className="w-full grid grid-cols-2 gap-5 mt-6">
       {/* Source Images (Draggable) */}
       <div className="space-y-3">
        
@@ -42,7 +42,7 @@ const DragMatchQuestion = ({
                 alt={item.label}
                 className="w-16 h-16 md:w-20 md:h-20 object-contain pointer-events-none"
               />
-              <span className="text-lg md:text-xl font-bold text-slate-800">{item.label}</span>
+              {/* <span className="text-lg md:text-xl font-bold text-slate-800">{item.label}</span> */}
             </Motion.div>
           );
         })}

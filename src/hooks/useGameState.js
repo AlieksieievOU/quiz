@@ -9,8 +9,7 @@ import questions3 from '../data/level-2/questions.json';
 import questions4 from '../data/level-3/questions.json';
 
 const QUESTIONS_BY_LEVEL = {
-  // 1: [...questions1,...questions2,...questions5],
-  1: [...questions5],
+  1: [...questions1,...questions2],
   2: [...questions3],
   3: [...questions4]
 };
