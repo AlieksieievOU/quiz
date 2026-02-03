@@ -44,6 +44,7 @@ body {
 }
 
 /* Standard Interactive Elements */
+.yellow-button-dashed,
 .yellow-button, .blue-button {
   border-radius: 1rem;
   border-width: 6px;
@@ -59,6 +60,12 @@ body {
   border-color: #eab308;
   box-shadow: 0 6px 0 #ca8a04;
   color: #0f172a;
+}
+
+.yellow-button-dashed {
+  border: 6px dashed #eab308;
+  background-color: transparent;
+    box-shadow: 0 6px 0 #ca8a04;
 }
 
 .yellow-button:active:not(:disabled) {

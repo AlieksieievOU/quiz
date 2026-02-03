@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "type": "drag-match",
+    "question": "Співставте музичні інструменти з їх сімействами",
+    "sourceImages": [
+      {
+        "id": "instrument-1",
+        "src": "violin.png",
+        "label": "Скрипка"
+      },
+      {
+        "id": "instrument-2",
+        "src": "trumpet.png",
+        "label": "Труба"
+      },
+      {
+        "id": "instrument-3",
+        "src": "drum.png",
+        "label": "Барабан"
+      }
+    ],
+    "targetSlots": [
+      {
+        "id": "family-1",
+        "src": "strings.png",
+        "label": "Струнні"
+      },
+      {
+        "id": "family-2",
+        "src": "brass.png",
+        "label": "Духові"
+      },
+      {
+        "id": "family-3",
+        "src": "percussion.png",
+        "label": "Ударні"
+      }
+    ],
+    "answer": [
+      {
+        "source": "instrument-1",
+        "target": "family-1"
+      },
+      {
+        "source": "instrument-2",
+        "target": "family-2"
+      },
+      {
+        "source": "instrument-3",
+        "target": "family-3"
+      }
+    ],
+    "wiki": "#"
+  }
+]

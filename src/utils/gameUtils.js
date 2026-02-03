@@ -18,7 +18,7 @@ export const shuffleArray = (array) => {
  * @returns {Object} Object containing shuffled options and the new correct answer index
  */
 export const prepareQuestion = (question) => {
-  if (!question) return { options: [], answerIndex: null };
+  if (!question || !question.options) return { options: [], answerIndex: null };
   const options = shuffleArray(question.options);
   const answerIndex = options.indexOf(question.options[question.answer]);
   return { options, answerIndex };

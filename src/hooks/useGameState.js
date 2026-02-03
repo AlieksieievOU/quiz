@@ -4,16 +4,18 @@ import { shuffleArray, prepareQuestion } from '../utils/gameUtils';
 
 import questions1 from '../data/level-1/questions.json';
 import questions2 from '../data/level-1/questions2.json';
+import questions5 from '../data/level-1/questions3.json';
 import questions3 from '../data/level-2/questions.json';
 import questions4 from '../data/level-3/questions.json';
 
 const QUESTIONS_BY_LEVEL = {
-  1: [...questions1, ...questions2],
+  // 1: [...questions1,...questions2,...questions5],
+  1: [...questions5],
   2: [...questions3],
   3: [...questions4]
 };
 
-const STORAGE_KEY = 'quiz_game_state_v1';
+const STORAGE_KEY = 'quiz_game_state_v2';
 
 function reducer(state, action) {
   switch (action.type) {
@@ -34,7 +36,16 @@ function reducer(state, action) {
 
       const sessionQuestions = shuffleArray(availableQuestions).slice(0, GAME_CONFIG.QUESTIONS_PER_SESSION);
 
-      const { options, answerIndex } = prepareQuestion(sessionQuestions[0]);
+      // Only prepare question if it's a regular question with options
+      const firstQuestion = sessionQuestions[0];
+      let options = [];
+      let answerIndex = null;
+      
+      if (firstQuestion && firstQuestion.type !== 'drag-match') {
+        const prepared = prepareQuestion(firstQuestion);
+        options = prepared.options;
+        answerIndex = prepared.answerIndex;
+      }
       
       return {
         ...INITIAL_STATE,
@@ -57,6 +68,47 @@ function reducer(state, action) {
       return { ...state, selectedOption: action.payload };
 
     case 'CHECK_ANSWER': {
+      const currentQ = state.sessionQuestions[state.questionIndex];
+      
+      // Handle drag-match questions
+      if (currentQ?.type === 'drag-match') {
+        if (!state.userMatches || state.userMatches.length === 0) return state;
+        
+        // Check if all matches are correct
+        const correctMatches = currentQ.answer;
+        const correct = correctMatches.every(correctMatch => 
+          state.userMatches.some(userMatch => 
+            userMatch.source === correctMatch.source && 
+            userMatch.target === correctMatch.target
+          )
+        ) && state.userMatches.length === correctMatches.length;
+        
+        let rewardType = null;
+        if (correct) {
+          const nextCoins = state.coins + 1;
+          if (nextCoins % GAME_CONFIG.COINS_PER_DIAMOND === 0 && nextCoins !== 0) {
+            rewardType = REWARD_TYPES.DIAMOND;
+          } else {
+            rewardType = REWARD_TYPES.COIN;
+          }
+        }
+        
+        let newCompleted = state.completedQuestions || [];
+        if (correct && currentQ && !newCompleted.includes(currentQ.id)) {
+          newCompleted = [...newCompleted, currentQ.id];
+        }
+        
+        return {
+          ...state,
+          isCorrect: correct,
+          isAnswered: true,
+          rewardType,
+          completedQuestions: newCompleted,
+          errors: !correct ? state.errors + 1 : state.errors,
+        };
+      }
+      
+      // Handle regular multiple-choice questions
       if (state.selectedOption === null) return state;
 
       const correct = state.shuffledAnswerIndex === state.selectedOption;
@@ -72,7 +124,6 @@ function reducer(state, action) {
       }
       
       // Only track as "Completed" if correct and ensure unique
-      const currentQ = state.sessionQuestions[state.questionIndex];
       let newCompleted = state.completedQuestions || [];
       if (correct && currentQ && !newCompleted.includes(currentQ.id)) {
         newCompleted = [...newCompleted, currentQ.id];
@@ -151,7 +202,15 @@ function reducer(state, action) {
         };
       }
 
-      const { options, answerIndex } = prepareQuestion(currentQuestion);
+      // Only prepare question if it's a regular question with options
+      let options = [];
+      let answerIndex = null;
+      
+      if (currentQuestion.type !== 'drag-match') {
+        const prepared = prepareQuestion(currentQuestion);
+        options = prepared.options;
+        answerIndex = prepared.answerIndex;
+      }
 
       return {
         ...state,
@@ -164,8 +223,26 @@ function reducer(state, action) {
         isCorrect: false,
         rewardType: null,
         screen: SCREENS.QUIZ,
+        userMatches: [], // Reset drag-match state
+        draggedItem: null, // Reset dragged item
       };
     }
+
+    case 'SET_USER_MATCH': {
+      const { source, target } = action.payload;
+      // Remove any existing match for this source or target
+      const filteredMatches = state.userMatches.filter(
+        match => match.source !== source && match.target !== target
+      );
+      // Add new match
+      return {
+        ...state,
+        userMatches: [...filteredMatches, { source, target }]
+      };
+    }
+
+    case 'SET_DRAGGED_ITEM':
+      return { ...state, draggedItem: action.payload };
 
     case 'TOGGLE_MUTE':
       return { ...state, isMuted: !state.isMuted };
@@ -178,7 +255,17 @@ function reducer(state, action) {
 function transitionToLevel(state, nextLevel) {
   const questionsForLevel = QUESTIONS_BY_LEVEL[nextLevel];
   const sessionQuestions = shuffleArray(questionsForLevel).slice(0, GAME_CONFIG.QUESTIONS_PER_SESSION);
-  const { options, answerIndex } = prepareQuestion(sessionQuestions[0]);
+  
+  // Only prepare question if it's a regular question with options
+  const firstQuestion = sessionQuestions[0];
+  let options = [];
+  let answerIndex = null;
+  
+  if (firstQuestion && firstQuestion.type !== 'drag-match') {
+    const prepared = prepareQuestion(firstQuestion);
+    options = prepared.options;
+    answerIndex = prepared.answerIndex;
+  }
 
   return {
     ...state,
@@ -193,6 +280,8 @@ function transitionToLevel(state, nextLevel) {
     isAnswered: false,
     isCorrect: false,
     rewardType: null,
+    userMatches: [],
+    draggedItem: null,
   };
 }
 
@@ -233,6 +322,8 @@ export function useGameState() {
     checkAnswer: () => dispatch({ type: 'CHECK_ANSWER' }),
     nextQuestion: (fromReward) => dispatch({ type: 'NEXT_QUESTION', payload: { fromReward } }),
     toggleMute: () => dispatch({ type: 'TOGGLE_MUTE' }),
+    setUserMatch: (source, target) => dispatch({ type: 'SET_USER_MATCH', payload: { source, target } }),
+    setDraggedItem: (itemId) => dispatch({ type: 'SET_DRAGGED_ITEM', payload: itemId }),
   }), [dispatch]);
 
   return [state, actions];

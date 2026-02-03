@@ -1,4 +1,5 @@
 import { motion as Motion } from 'framer-motion';
+import DragMatchQuestion from './DragMatchQuestion';
 
 const QuizScreen = ({
   question,
@@ -10,7 +11,12 @@ const QuizScreen = ({
   toggleMute,
   handleOptionSelect,
   checkAnswer,
-  nextQuestion
+  nextQuestion,
+  userMatches,
+  draggedItem,
+  handleDragStart,
+  handleDragEnd,
+  handleDrop,
 }) => {
   if (!question) return null;
 
@@ -38,23 +44,39 @@ const QuizScreen = ({
             />
           </div>
         )}
-      {/* Options Grid */}
-      <div className="grid grid-cols-1 gap-3 md:gap-3 w-full">
-        {shuffledOptions.map((option, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleOptionSelect(idx)}
-            className={`yellow-button cursor-pointer p-2 md:p-3 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
-              ${selectedOption === idx && !isAnswered ? 'selected orange-frame!' : ''}
-              ${isAnswered && idx === shuffledAnswerIndex ? 'bg-green-400! border-green-600! correct' : ''}
-              ${isAnswered && selectedOption === idx && idx !== shuffledAnswerIndex ? 'bg-red-400! border-red-600! wrong' : ''}
-            `}
-          >
-            <span className="flex min-w-6 min-h-6 items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-md bg-white/50 text-md md:text-lg font-bold">{idx + 1}</span>
-            <span>{option}</span>
-          </button>
-        ))}
-      </div>
+      {/* Question Content - Conditional based on type */}
+      {(() => {
+        console.log('Question type:', question.type, 'Full question:', question);
+        return question.type === 'drag-match';
+      })() ? (
+        <DragMatchQuestion
+          question={question}
+          userMatches={userMatches}
+          draggedItem={draggedItem}
+          isAnswered={isAnswered}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDrop={handleDrop}
+        />
+      ) : (
+        /* Options Grid for regular questions */
+        <div className="grid grid-cols-1 gap-3 md:gap-3 w-full">
+          {shuffledOptions.map((option, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleOptionSelect(idx)}
+              className={`yellow-button cursor-pointer p-2 md:p-3 text-xl md:text-2xl font-bold text-slate-800 justify-start items-start text-left transition-colors
+                ${selectedOption === idx && !isAnswered ? 'selected orange-frame!' : ''}
+                ${isAnswered && idx === shuffledAnswerIndex ? 'bg-green-400! border-green-600! correct' : ''}
+                ${isAnswered && selectedOption === idx && idx !== shuffledAnswerIndex ? 'bg-red-400! border-red-600! wrong' : ''}
+              `}
+            >
+              <span className="flex min-w-6 min-h-6 items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-md bg-white/50 text-md md:text-lg font-bold">{idx + 1}</span>
+              <span>{option}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Inactive Arrow until answered */}
       <div className="mt-6 md:mt-12 w-full flex justify-between items-center">
@@ -69,7 +91,11 @@ const QuizScreen = ({
         {!isAnswered ? (
           <button
             onClick={checkAnswer}
-            disabled={selectedOption === null}
+            disabled={
+              question.type === 'drag-match' 
+                ? !userMatches || userMatches.length !== question.answer.length
+                : selectedOption === null
+            }
             className="blue-button px-4 py-2 text-2xl font-bold next-arrow cursor-pointer"
           >
             ПЕРЕВІРИТИ

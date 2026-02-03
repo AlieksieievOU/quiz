@@ -40,4 +40,6 @@ export const INITIAL_STATE = {
   sessionQuestions: [],
   currentLevel: 1,
   completedQuestions: [], // IDs of correctly answered questions
+  userMatches: [], // For drag-match questions: [{source: id, target: id}]
+  draggedItem: null, // Currently dragged item ID
 };

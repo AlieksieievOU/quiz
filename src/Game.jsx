@@ -37,7 +37,7 @@ function Game() {
     screen, questionIndex, coins, diamonds,
     selectedOption, isAnswered, isCorrect, rewardType,
     shuffledOptions, shuffledAnswerIndex, isMuted, errors,
-    currentLevel, sessionQuestions
+    currentLevel, sessionQuestions, userMatches, draggedItem
   } = state;
 
   // Initialize Google Analytics on mount
@@ -192,6 +192,16 @@ function Game() {
             handleOptionSelect={actions.selectOption}
             checkAnswer={actions.checkAnswer}
             nextQuestion={actions.nextQuestion}
+            userMatches={userMatches}
+            draggedItem={draggedItem}
+            handleDragStart={actions.setDraggedItem}
+            handleDragEnd={() => actions.setDraggedItem(null)}
+            handleDrop={(targetId) => {
+              if (draggedItem) {
+                actions.setUserMatch(draggedItem, targetId);
+                actions.setDraggedItem(null);
+              }
+            }}
           />
         </div>
       )}
