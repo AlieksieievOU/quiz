@@ -89,6 +89,24 @@ body {
   box-shadow: 0 6px 0 #b43838 !important;
 }
 
+.yellow-button-dashed.correct {
+  background-color: rgba(74, 222, 128, 0.3) !important;
+  border: 6px dashed #16a34a !important;
+  box-shadow: 0 6px 0 #16a34a !important;
+}
+
+.yellow-button-dashed.wrong {
+  background-color: rgba(248, 113, 113, 0.3) !important;
+  border: 6px dashed #dc2626 !important;
+  box-shadow: 0 6px 0 #dc2626 !important;
+}
+
+.yellow-button-dashed.drag-over {
+  outline: 2px solid rgba(0, 0, 0, 0.5);
+  outline-offset: 2px;
+  transform: scale(1.02);
+}
+
 .blue-button {
   background: #3b82f6;
   border-color: #2563eb;
